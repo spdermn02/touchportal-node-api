@@ -1,0 +1,15 @@
+{
+  "name": "touchportal-api",
+  "version": "1.0.0",
+  "description": "TouchPortal API in Node.JS",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "TouchPortal"
+  ],
+  "repository":"github:spdermn02/touchportal-node-api",
+  "author": "Jameson Allen aka Spdermn02",
+  "license": "GPL-3.0"
+}

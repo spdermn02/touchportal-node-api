@@ -19,6 +19,7 @@ Build a plugin to Touch Portal with Node.JS utlizing this easy to use library.  
 ```
 v1.0.0 - Initial Release of the API
 v1.0.1 - minor bug fix emite -> emit, log message update, and invalid variable definition fixed
+v1.0.2 - Documentation Update
 ```
 
 ## Usage 

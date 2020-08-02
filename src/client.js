@@ -12,7 +12,7 @@ class TouchPortalClient extends EventEmitter {
     this.customStates = {};
   }
 
-  createState(id,desc,defaultvalue){
+  createState(id,desc,defaultValue){
     if( this.customStates[id] ) {
       throw `createState: Custom state of ${id} already created`;
     }
@@ -94,7 +94,6 @@ class TouchPortalClient extends EventEmitter {
   connect(options = {}) {
     let { pluginId } = options;
     this.pluginId = pluginId;
-    console.log(this.pluginId);
     this.socket = new net.Socket();
     let that = this;
     this.socket.connect(12136, "127.0.0.1", function () {
@@ -112,7 +111,7 @@ class TouchPortalClient extends EventEmitter {
           console.log(message.pluginId, that.pluginId);
           if (message.pluginId === that.pluginId) {
             that.emit("Close", message);
-            console.log("received Close Plugin message, exiting in 5 seconds");
+            console.log(that.pluginId,"received Close Plugin message, exiting in 5 seconds");
             setTimeout(() => {
               process.exit(9);
             }, 5000);
@@ -124,7 +123,7 @@ class TouchPortalClient extends EventEmitter {
           break;
         case "listChange":
           console.log("ListChange received");
-          that.emite("ListChange", message);
+          that.emit("ListChange", message);
           break;
         case "action":
           console.log("Action received");

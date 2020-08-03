@@ -22,6 +22,7 @@ v1.0.1 - minor bug fix emite -> emit, log message update, and invalid variable d
 v1.0.2 - Documentation Update
 v1.0.3 - Bug Fixes - fixing all the typeof checks that weren't correct, adding some console.log messages, and throwing new errors instead of just using throw
 v1.0.4 - End socket connection from the client side when a close message is received
+v1.0.5 - bug fix for socket connection end
 ```
 
 ## Usage 

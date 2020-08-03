@@ -20,6 +20,7 @@ Build a plugin to Touch Portal with Node.JS utlizing this easy to use library.  
 v1.0.0 - Initial Release of the API
 v1.0.1 - minor bug fix emite -> emit, log message update, and invalid variable definition fixed
 v1.0.2 - Documentation Update
+v1.0.3 - Bug Fixes - fixing all the typeof checks that weren't correct, adding some console.log messages, and throwing new errors instead of just using throw
 ```
 
 ## Usage 
@@ -135,7 +136,7 @@ If you need support, drop a question in the github issues tab, and I'll get to i
 Please report bugs using the github issues tab
 
 # Contribute
-Feel free to fork this repo and suggest pull requests. I cannot guarantee they will be included, but I'm definitely open to changes, ehancements, bug fixes!
+Feel free to fork this repo and suggest pull requests. I cannot guarantee they will be included, but I'm definitely open to changes, enhancements, bug fixes!
 
 # Touch Portal
 If you got here, and are like "WTF is this?" it is for integrating custom functionality as a Touch Portal plugin. check out https://touch-portal.com to learn more about Touch Portal and it's amazing features and community.

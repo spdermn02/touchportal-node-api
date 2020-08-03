@@ -143,12 +143,10 @@ class TouchPortalClient extends EventEmitter {
             that.emit("Close", message);
             console.log(
               that.pluginId,
-              ": WARN : received Close Plugin message, exiting in 5 seconds"
+              ": WARN : received Close Plugin message"
             );
             that.socket.end();
-            setTimeout(() => {
-              process.exit(9);
-            }, 5000);
+            process.exit(9);
           }
           break;
         case "info":

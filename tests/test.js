@@ -3,6 +3,8 @@
 const TP = require("../src/index.js");
 
 const pluginId = "TPExample";
+const updateUrl =
+  "https://raw.githubusercontent.com/spdermn02/touchportal-node-api/master/package.json";
 
 const client = new TP.Client();
 client.on("Action", (data) => {
@@ -21,5 +23,4 @@ client.on("Close", (data) => {
   console.log("Closing Plugin:", JSON.stringify(data));
 });
 
-client.connect({ pluginId });
-
+client.connect({ pluginId, updateUrl });

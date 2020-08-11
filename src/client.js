@@ -2,6 +2,9 @@
 
 const EventEmitter = require("events");
 const net = require("net");
+const http = require("https");
+const {requireFromAppRoot} = require("require-from-app-root");
+const pluginVersion = requireFromAppRoot("package.json").version;
 
 class TouchPortalClient extends EventEmitter {
   constructor(options = {}) {
@@ -9,6 +12,7 @@ class TouchPortalClient extends EventEmitter {
     this.touchPortal = null;
     this.pluginId = null;
     this.socket = null;
+    this.updateUrl = null;
     this.customStates = {};
   }
 
@@ -122,9 +126,58 @@ class TouchPortalClient extends EventEmitter {
     this.send(pairMsg);
   }
 
+  checkForUpdate() {
+    let that = this;
+    http.get(this.updateUrl, (res) => {
+      const { statusCode } = res;
+      const contentType = res.headers["content-type"];
+
+      let error;
+      // Any 2xx status code signals a successful response but
+      // here we're only checking for 200.
+      if (statusCode !== 200) {
+        error = new Error(
+          this.pluginId +
+            ":ERROR: Request Failed.\n" +
+            `Status Code: ${statusCode}`
+        );
+      }
+      if (error) {
+        console.log(error.message);
+        res.resume();
+        return;
+      }
+
+      res.setEncoding("utf8");
+      let updateData = "";
+      res.on("data", (chunk) => {
+        updateData += chunk;
+      });
+      res.on("end", () => {
+        try {
+          const jsonData = JSON.parse(updateData);
+          if (jsonData.version !== null) {
+            console.log(pluginVersion);
+            if (jsonData.version != pluginVersion) {
+              that.emit("Update",pluginVersion,jsonData.version);
+            }
+          }
+
+          console.log(jsonData);
+        } catch (e) {
+          console.log(e.message);
+        }
+      });
+    });
+  }
+
   connect(options = {}) {
-    let { pluginId } = options;
+    let { pluginId, updateUrl } = options;
     this.pluginId = pluginId;
+    if (updateUrl !== null) {
+      this.updateUrl = updateUrl;
+      this.checkForUpdate();
+    }
     this.socket = new net.Socket();
     let that = this;
     this.socket.connect(12136, "127.0.0.1", function () {

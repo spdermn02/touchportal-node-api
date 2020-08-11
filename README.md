@@ -24,6 +24,7 @@ v1.0.3 - Bug Fixes - fixing all the typeof checks that weren't correct, adding s
 v1.0.4 - End socket connection from the client side when a close message is received
 v1.0.5 - bug fix for socket connection end
 v1.0.6 - Removing 5 second "wait" for socket close event to fire - no need for it - it is synchronous anyways
+v1.1.0 - Adding in updateUrl as an option to connect, to verify plugin version to external version and emit event if an updated is needed
 ```
 
 ## Usage 
@@ -41,6 +42,10 @@ const TPClient = new TouchPortalAPI.Client();
 
 // Define a pluginId, matches your entry.tp file
 const pluginId = 'TPExamplePlugin';
+
+// Optional updateUrl - link to JSON file that is at least { "version":"1.0.0" } formatted (version uses semantic versioning)
+// Only use https ... please and thank you
+const updateUrl = "https://raw.githubusercontent.com/spdermn02/touchportal-node-api/master/package.json";
 
 // Dynamic Actions Documentation: https://www.touch-portal.com/api/index.php?section=dynamic-actions
 
@@ -123,8 +128,14 @@ TPClient.on("Info",(data) => {
 
 });
 
+
 //Connects and Pairs to Touch Portal via Sockete
-TPClient.connect({ pluginId });
+TPClient.connect({ pluginId }); 
+
+// --- Alternate --- 
+//Note: if you want to have TouchPortal API look at a json file somewhere on the internet, you can include updateUrl as a parameter
+//It will then emit the "Update" event if your plugin version is older than the version at the updateUrl
+TPClient.connect({ pluginId, updateUrl }); //updateUrl is optional only if you want TouchPortal-API to attempt to tell you if you need an update or not
 
 ```
 

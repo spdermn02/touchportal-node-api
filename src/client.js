@@ -2,6 +2,13 @@
 
 const EventEmitter = require("events");
 const net = require("net");
+const http = require("https");
+const compareVersions = require('compare-versions');
+const { requireFromAppRoot } = require('require-from-app-root');
+const pluginVersion = requireFromAppRoot('package.json').version;
+
+const SOCKET_IP = '127.0.0.1';
+const SOCKET_PORT = 12136;
 
 class TouchPortalClient extends EventEmitter {
   constructor(options = {}) {
@@ -122,19 +129,64 @@ class TouchPortalClient extends EventEmitter {
     this.send(pairMsg);
   }
 
+  checkForUpdate() {
+		const that = this;
+		http.get(this.updateUrl, (res) => {
+			const { statusCode } = res;
+
+			let error;
+			// Any 2xx status code signals a successful response but
+			// here we're only checking for 200.
+			if (statusCode !== 200) {
+				error = new Error(this.pluginId + ':ERROR: Request Failed.\n' + `Status Code: ${statusCode}`);
+			}
+			if (error) {
+				console.log(error.message);
+				res.resume();
+				return;
+			}
+
+			res.setEncoding('utf8');
+			let updateData = '';
+			res.on('data', (chunk) => {
+				updateData += chunk;
+			});
+			res.on('end', () => {
+				try {
+					const jsonData = JSON.parse(updateData);
+					if (jsonData.version !== null) {
+						if (compareVersions(jsonData.version, pluginVersion) > 0) {
+							that.emit('Update', pluginVersion, jsonData.version);
+						}
+					}
+				}
+				catch (e) {
+					console.log(e.message);
+				}
+			});
+		});
+	}
+
   connect(options = {}) {
-    let { pluginId } = options;
+    let { pluginId, updateUrl } = options;
     this.pluginId = pluginId;
+
+    if ( updateUrl !== null ) {
+			this.updateUrl = updateUrl;
+			this.checkForUpdate();
+		}
+
     this.socket = new net.Socket();
     let that = this;
-    this.socket.connect(12136, "127.0.0.1", function () {
+    this.socket.connect(SOCKET_PORT, SOCKET_IP, function () {
       console.log(that.pluginId, ": DEBUG : Connected to TouchPortal");
       that.emit("connected");
       that.pair();
     });
 
     this.socket.on("data", function (data) {
-      const message = JSON.parse(data);
+      console.log("data received",data);
+      const message = JSON.parse(data.toString("utf-8"));
 
       //Handle internal TP Messages here, else pass to user code
       switch (message.type) {
@@ -152,6 +204,13 @@ class TouchPortalClient extends EventEmitter {
         case "info":
           console.log(that.pluginId, ": DEBUG : Info received");
           that.emit("Info", message);
+          if( message.settings !== null ) {
+              that.emit("Settings", message.settings)
+          }
+          break;
+        case "settings":
+          console.log(that.pluginId, ": DEBUG : Settings Update received");
+          that.emit("Settings", message);
           break;
         case "listChange":
           console.log(that.pluginId, ": DEBUG : ListChange received");
@@ -159,7 +218,19 @@ class TouchPortalClient extends EventEmitter {
           break;
         case "action":
           console.log(that.pluginId, ": DEBUG : Action received");
-          that.emit("Action", message);
+          that.emit("Action", message, null);
+          break;
+        case "broadcast":
+          console.log(that.pluginId, ": DEBUG : Broadcast Message received");
+          that.emit("Broadcast", message);
+          break;
+        case "up":
+          console.log(that.pluginId, ": DEBUG : Up Hold Message received");
+          that.emit("Action", message, false);
+          break;
+        case "down":
+          console.log(that.pluginId, ": DEBUG : Down Hold Message received");
+          that.emit("Action", message, true);
           break;
         default:
           console.log(

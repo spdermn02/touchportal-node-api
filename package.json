@@ -11,5 +11,9 @@
   ],
   "repository": "github:spdermn02/touchportal-node-api",
   "author": "Jameson Allen aka Spdermn02",
-  "license": "GPL-3.0"
+  "license": "GPL-3.0",
+  "dependencies": {
+    "compare-versions": "^3.6.0",
+    "require-from-app-root": "^0.2.1"
+  }
 }

@@ -161,7 +161,7 @@ class TouchPortalClient extends EventEmitter {
 					}
 				}
 				catch (e) {
-					console.log(e.message);
+					console.log(this.pluginId,":ERROR: Check for Update error=",e.message);
 				}
 			});
 		});

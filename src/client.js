@@ -186,10 +186,6 @@ class TouchPortalClient extends EventEmitter {
     });
 
     this.socket.on("data", function (data) {
-      //console.log("data received - buffer ",data.toString('hex').match(/../g).join('\\x'));
-      //console.log("data received",data.toString("base64"));
-      //console.log("data received",data.toString("latin1"));
-      //console.log("data received",data.toString("utf-8"));
 
       let lines = data.split(/(?:\r\n|\r|\n)/);
 

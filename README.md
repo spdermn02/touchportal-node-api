@@ -36,8 +36,8 @@ v2.0.0 - Updates to include new features from Touch Portal 2.3, minor enhancemen
     - Refactored Some code slightly
     - UTF-8 encoding on the socket will help with non-standard ascii character issues
   Bug Fixes:
-    - Fixed issue if multiple messages were received at the same time it could cause the json parse to fail and thus the plugin to throw and exception,
-      so not it splits on newlines and works all messages that came in during the read in the order they came in
+    - Fixed issue if multiple messages were received at the same time it could cause the json parse to fail and thus causing the code to throw and exception,
+      so now it splits on newlines and works all messages that came in during the read in the order they came in
 ```
 
 ## Usage 

@@ -74,10 +74,8 @@ class TouchPortalClient extends EventEmitter {
   settingUpdate(name,value){
     this.send({
       type: "settingUpdate",
-      data: {
-        name: name,
-        value: value
-      }
+      name: name,
+      value: value
     });
   }
 

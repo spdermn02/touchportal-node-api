@@ -21,9 +21,23 @@ v1.0.0 - Initial Release of the API
 v1.0.1 - minor bug fix emite -> emit, log message update, and invalid variable definition fixed
 v1.0.2 - Documentation Update
 v1.0.3 - Bug Fixes - fixing all the typeof checks that weren't correct, adding some console.log messages, and throwing new errors instead of just using throw
+  Additions:
+    - Create State functionality was added
 v1.0.4 - End socket connection from the client side when a close message is received
 v1.0.5 - bug fix for socket connection end
 v1.0.6 - Removing 5 second "wait" for socket close event to fire - no need for it - it is synchronous anyways
+v2.0.0 - Updates to include new features from Touch Portal 2.3, minor enhancements, bug fixes
+  Additions:
+    - Support for new TouchPortal Settings configuration
+    - Support for On Hold events of Up and Down actions
+    - Support for Broadcast messages from Touch Portal
+    - Support to handle checking for updates against a remote entry.tp file for your project
+  Updates:
+    - Refactored Some code slightly
+    - UTF-8 encoding on the socket will help with non-standard ascii character issues
+  Bug Fixes:
+    - Fixed issue if multiple messages were received at the same time it could cause the json parse to fail and thus causing the code to throw and exception,
+      so now it splits on newlines and works all messages that came in during the read in the order they came in
 ```
 
 ## Usage 
@@ -42,41 +56,70 @@ const TPClient = new TouchPortalAPI.Client();
 // Define a pluginId, matches your entry.tp file
 const pluginId = 'TPExamplePlugin';
 
+// Object to hold actionId of held actions
+let heldAction = {};
+
 // Dynamic Actions Documentation: https://www.touch-portal.com/api/index.php?section=dynamic-actions
 
 // Receive an Action Call from Touch Portal
-TPClient.on("Action", (data) => {
+TPClient.on("Action", (data,hold) => {
 
-    //An action was triggered, handle it here
-    /*
+  //hold parameter can be undefined, true or false
+  // undefined => was from "On Press" or "On Event"
+  // true => was from "On Hold" down (being held) trigger
+  // false => was from "On Hold" up (being let go) trigger
+
+  //Track the action being held
+  if( hold ) {
+    heldAction[message.actionId] = true;
+  }
+  else if ( !hold ) {
+    delete heldAction[message.actionId];
+  }
+
+  //An action was triggered, handle it here
+  /*
+    {
+      "type":"action",
+      "pluginId":"id of the plugin",
+      "actionId":"id of the action",
+      "data": [
         {
-            "type":"action",
-            "pluginId":"id of the plugin",
-            "actionId":"id of the action",
-            "data": [
-                {
-                "id":"data object id",
-                "value":"user specified data object value",
-                },
-                {
-                "id":"data object id",
-                "value":"user specified data object value",
-                }
-            ]
+          "id":"data object id",
+          "value":"user specified data object value",
+        },
+        {
+          "id":"data object id",
+          "value":"user specified data object value",
         }
-    */
+      ]
+    }
+  */
 
-    ...
+  //Example Hold action handler
+  let adjustVol = parseInt(message.data[0].value,10);
+  while( hold === undefined || heldAction[message.actionId] ) {
 
-    // Once your action is done, send a State Update back to Touch Portal
-    TPClient.stateUpdate("<state id>", "value", data.InstanceId);
+    //Do Action here that can be repeated
 
-    // If you have multiple states to send back, you can do that in one call versus separate
-    let states = [
-        { id: "<state id1>", value: "value"},
-        { id: "<state id2>", value: "value1"}
-    ]
-    TPClient.stateUpdateMany(states);
+    //Will cause a 100ms wait
+    await new Promise(r => setTimeout(r,100));
+    
+    // If we aren't holding(so just a keypress) or we no longer are being held, break this loop
+    if( hold === undefined || !heldAction[message.actionId] ) { break; }
+  }
+
+  ...
+
+  // Once your action is done, send a State Update back to Touch Portal
+  TPClient.stateUpdate("<state id>", "value", data.InstanceId);
+
+  // If you have multiple states to send back, you can do that in one call versus separate
+  let states = [
+    { id: "<state id1>", value: "value"},
+    { id: "<state id2>", value: "value1"}
+  ];
+  TPClient.stateUpdateMany(states);
 });
 
 TPClient.on("ListChange",(data) => {
@@ -104,9 +147,11 @@ TPClient.on("ListChange",(data) => {
 TPClient.on("Info",(data) => {
 
     //Do something with the Info message here
+    // NOTE: the "settings" section is already handled and will emit the Settings event, no need to duplicate here, just documenting since it is part of the info message
     /*
         {
             "type":"info",
+            "settings":[{"Setting 1":"Value 1"},...,],
             "sdkVersion":"(SDK version code)"
             "tpVersionString":"(Version of Touch Portal in string format)"
             "tpVersionCode":"(Version of Touch Portal in code format)"
@@ -123,8 +168,43 @@ TPClient.on("Info",(data) => {
 
 });
 
+TPClient.on("Broadcast",(data) = > {
+
+  // If you want to handle page change events - this is what happens
+  // more info here: https://www.touch-portal.com/api/index.php?section=dynamic-actions
+
+  /* 
+    {"type":"broadcast",
+     "event":"pageChange",
+     "pageName":"name of the page switched to"
+    }
+  */
+
+});
+
+TPClient.on("Settings",(data) => {
+
+    //Do something with the Settings message here
+    // Note: this can be called any time settings are modified or saved in the TouchPortal Settings window.
+    /* 
+      [{"Setting 1":"Value 1"},{"Setting 2":"Value 2"},...,{"Setting N":"Value N"}]
+    */
+
+});
+
+TPClient.on("Update",(curVersion, remoteVersion) => {
+
+    // Do something to indicate to your user there is an update
+    // Open a localhost page, navigate them to the repo about the update, whatever you want to do.
+    // Note: this is only checked on startup of the application and will not inform users of update until a full restart of Touch Portal or the plugin itself.
+
+});
+
 //Connects and Pairs to Touch Portal via Sockete
 TPClient.connect({ pluginId });
+
+//If you want touchportal-node-api to check for updates on startup, 
+TPClient.connect({ pluginId, "updateUrl":"<url to remote entry.tp file>" });
 
 ```
 

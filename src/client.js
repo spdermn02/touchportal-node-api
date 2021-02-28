@@ -80,7 +80,7 @@ class TouchPortalClient extends EventEmitter {
   }
 
   stateUpdate(id, value) {
-    this.send({ type: "stateUpdate", id: id, value: value });
+    this.send({ type: "stateUpdate", id: id, value: `${value}` });
   }
 
   stateUpdateMany(states) {
@@ -98,7 +98,7 @@ class TouchPortalClient extends EventEmitter {
       stateArray.push({
         type: "stateUpdate",
         id: state.id,
-        value: state.value,
+        value: `${state.value}`,
       });
     });
 

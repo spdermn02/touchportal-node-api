@@ -215,23 +215,23 @@ class TouchPortalClient extends EventEmitter {
             }
             break;
           case "info":
-            console.log(that.pluginId, ": DEBUG : Info received");
+            console.log(that.pluginId, ": DEBUG : Info Message received");
             that.emit("Info", message);
             if( message.settings !== null ) {
                 that.emit("Settings", message.settings)
             }
             break;
           case "settings":
-            console.log(that.pluginId, ": DEBUG : Settings Update received");
+            console.log(that.pluginId, ": DEBUG : Settings Message received");
             // values is the key that is the same as how info contains settings key, for direct settings saving
             that.emit("Settings", message.values);
             break;
           case "listChange":
-            console.log(that.pluginId, ": DEBUG : ListChange received");
+            console.log(that.pluginId, ": DEBUG : ListChange Message received");
             that.emit("ListChange", message);
             break;
           case "action":
-            console.log(that.pluginId, ": DEBUG : Action received");
+            console.log(that.pluginId, ": DEBUG : Action Message received");
             that.emit("Action", message, null);
             break;
           case "broadcast":

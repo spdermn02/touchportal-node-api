@@ -31,13 +31,13 @@ v2.0.0 - Updates to include new features from Touch Portal 2.3, minor enhancemen
     - Support for new TouchPortal Settings configuration
     - Support for On Hold events of Up and Down actions
     - Support for Broadcast messages from Touch Portal
-    - Support to handle checking for updates against a remote entry.tp file for your project
+    - Support to handle checking for updates against a remote package.json file for your project
   Updates:
     - Refactored Some code slightly
     - UTF-8 encoding on the socket will help with non-standard ascii character issues
   Bug Fixes:
-    - Fixed issue if multiple messages were received at the same time it could cause the json parse to fail and thus causing the code to throw and exception,
-      so now it splits on newlines and works all messages that came in during the read in the order they came in
+    - Fixed issue if multiple messages were received at the same time it could cause the json parse to fail and thus causing the code to throw and exception, so now it splits on newlines and works all messages that came in during the read in the order they came in
+    - Fixed #5 Issue - forces ids and values to strings during stateUpdate and stateUpdateMany
 ```
 
 ## Usage 

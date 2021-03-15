@@ -21,10 +21,7 @@ class TouchPortalClient extends EventEmitter {
 
   createState(id, desc, defaultValue) {
     if (this.customStates[id]) {
-      console.log(
-        this.pluginId,
-        `: ERROR : createState: Custom state of ${id} already created`
-      );
+      this.logIt("ERROR",`createState: Custom state of ${id} already created`);
       throw new Error(`createState: Custom state of ${id} already created`);
     }
     this.send({
@@ -37,10 +34,7 @@ class TouchPortalClient extends EventEmitter {
 
   choiceUpdate(id, value) {
     if (value.length <= 0) {
-      console.log(
-        this.pluginId,
-        ": ERROR : choiceUpdate: value is an empty array"
-      );
+      this.logIt( "ERROR","choiceUpdate: value is an empty array");
       throw new Error("choiceUpdate: value is an empty array");
     }
     this.send({ type: "choiceUpdate", id: id, value: value });
@@ -48,19 +42,13 @@ class TouchPortalClient extends EventEmitter {
 
   choiceUpdateSpecific(id, value, instanceId) {
     if (value.length <= 0) {
-      console.log(
-        this.pluginId,
-        ": ERROR : choiceUpdateSpecific : value does not contain data in an array format"
-      );
+      this.logIt("ERROR","choiceUpdateSpecific : value does not contain data in an array format");
       throw new Error(
         "choiceUpdateSpecific: value does not contain data in an array format"
       );
     }
     if (!instanceId || instanceId == "") {
-      console.log(
-        this.pluginId,
-        ": ERROR : choiceUpdateSpecific : instanceId is not populated"
-      );
+      this.logIt("ERROR","choiceUpdateSpecific : instanceId is not populated");
       throw new Error("choiceUpdateSpecific: instanceId is not populated");
     }
     this.send({
@@ -87,10 +75,7 @@ class TouchPortalClient extends EventEmitter {
     let stateArray = [];
 
     if (states.length <= 0) {
-      console.log(
-        this.pluginId,
-        ": ERROR : stateUpdateMany : states contains no data"
-      );
+      this.logIt("ERROR","stateUpdateMany : states contains no data");
       throw new Error("stateUpdateMany: states contains no data");
     }
 
@@ -108,10 +93,7 @@ class TouchPortalClient extends EventEmitter {
   sendArray(dataArray) {
     let dataStr = "";
     if (dataArray.length <= 0) {
-      console.log(
-        this.pluginId,
-        ": ERROR : sendArray : dataArray has no length"
-      );
+      this.logIt("ERROR","sendArray : dataArray has no length");
       throw new Error("sendArray: dataArray has no length");
     }
     dataArray.forEach((element) => {
@@ -138,7 +120,7 @@ class TouchPortalClient extends EventEmitter {
   }
 
   checkForUpdate() {
-		const that = this;
+		const parent = this;
 		http.get(this.updateUrl, (res) => {
 			const { statusCode } = res;
 
@@ -149,7 +131,7 @@ class TouchPortalClient extends EventEmitter {
 				error = new Error(this.pluginId + ':ERROR: Request Failed.\n' + `Status Code: ${statusCode}`);
 			}
 			if (error) {
-				console.log(error.message);
+				parent.logIt("ERROR",`check for update errored: ${error.message}`);
 				res.resume();
 				return;
 			}
@@ -164,12 +146,12 @@ class TouchPortalClient extends EventEmitter {
 					const jsonData = JSON.parse(updateData);
 					if (jsonData.version !== null) {
 						if (compareVersions(jsonData.version, pluginVersion) > 0) {
-							that.emit('Update', pluginVersion, jsonData.version);
+							parent.emit('Update', pluginVersion, jsonData.version);
 						}
 					}
 				}
 				catch (e) {
-					console.log(this.pluginId,":ERROR: Check for Update error=",e.message);
+					parent.logIt("ERROR: Check for Update error=",e.message);
 				}
 			});
 		});
@@ -178,6 +160,7 @@ class TouchPortalClient extends EventEmitter {
   connect(options = {}) {
     let { pluginId, updateUrl } = options;
     this.pluginId = pluginId;
+    let parent = this;
 
     if ( updateUrl !== undefined ) {
 		  this.updateUrl = updateUrl;
@@ -186,11 +169,10 @@ class TouchPortalClient extends EventEmitter {
 
     this.socket = new net.Socket();
     this.socket.setEncoding("utf-8");
-    let that = this;
     this.socket.connect(SOCKET_PORT, SOCKET_IP, function () {
-      console.log(that.pluginId, ": DEBUG : Connected to TouchPortal");
-      that.emit("connected");
-      that.pair();
+      parent.logIt("INFO","Connected to TouchPortal");
+      parent.emit("connected");
+      parent.pair();
     });
 
     this.socket.on("data", function (data) {
@@ -204,65 +186,65 @@ class TouchPortalClient extends EventEmitter {
         //Handle internal TP Messages here, else pass to user code
         switch (message.type) {
           case "closePlugin":
-            if (message.pluginId === that.pluginId) {
-              that.emit("Close", message);
-              console.log(
-                that.pluginId,
-                ": WARN : received Close Plugin message"
-              );
-              that.socket.end();
+            if (message.pluginId === parent.pluginId) {
+              parent.emit("Close", message);
+              parent.logIt("WARN","received Close Plugin message");
+              parent.socket.end();
               process.exit(0);
             }
             break;
           case "info":
-            console.log(that.pluginId, ": DEBUG : Info Message received");
-            that.emit("Info", message);
+            parent.logIt("DEBUG","Info Message received");
+            parent.emit("Info", message);
             if( message.settings !== null ) {
-                that.emit("Settings", message.settings)
+                parent.emit("Settings", message.settings)
             }
             break;
           case "settings":
-            console.log(that.pluginId, ": DEBUG : Settings Message received");
+            parent.logIt("DEBUG","Settings Message received");
             // values is the key that is the same as how info contains settings key, for direct settings saving
-            that.emit("Settings", message.values);
+            parent.emit("Settings", message.values);
             break;
           case "listChange":
-            console.log(that.pluginId, ": DEBUG : ListChange Message received");
-            that.emit("ListChange", message);
+            parent.logIt("DEBUG","ListChange Message received");
+            parent.emit("ListChange", message);
             break;
           case "action":
-            console.log(that.pluginId, ": DEBUG : Action Message received");
-            that.emit("Action", message, null);
+            parent.logIt("DEBUG","Action Message received");
+            parent.emit("Action", message, null);
             break;
           case "broadcast":
-            console.log(that.pluginId, ": DEBUG : Broadcast Message received");
-            that.emit("Broadcast", message);
+            parent.logIt("DEBUG","Broadcast Message received");
+            parent.emit("Broadcast", message);
             break;
           case "up":
-            console.log(that.pluginId, ": DEBUG : Up Hold Message received");
-            that.emit("Action", message, false);
+            parent.logIt("DEBUG","Up Hold Message received");
+            parent.emit("Action", message, false);
             break;
           case "down":
-            console.log(that.pluginId, ": DEBUG : Down Hold Message received");
-            that.emit("Action", message, true);
+            parent.logIt("DEBUG","Down Hold Message received");
+            parent.emit("Action", message, true);
             break;
           default:
-            console.log(
-              that.pluginId,
-              `: DEBUG : Unhandled type received ${message.type}`
-            );
-            that.emit("Message", message);
+            parent.logIt("DEBUG",`Unhandled type received ${message.type}`);
+            parent.emit("Message", message);
         }
       });
     });
     this.socket.on("error", function () {
-      console.log(that.pluginId, ": ERROR : Socket Connection closed");
+      parent.logIt("ERROR","Socket Connection closed");
       process.exit(0);
     });
 
     this.socket.on("close", function () {
-      console.log(that.pluginId, ": WARN : Connection closed");
+      parent.logIt("WARN","Connection closed");
     });
+  }
+  logIt() {
+    var curTime = new Date().toISOString();
+    var message = [...arguments];
+    var type = message.shift();
+    console.log(curTime,":",this.pluginId,":"+type+":",message.join(" "));
   }
 }
 

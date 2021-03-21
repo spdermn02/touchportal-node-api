@@ -196,7 +196,7 @@ class TouchPortalClient extends EventEmitter {
           case "info":
             parent.logIt("DEBUG","Info Message received");
             parent.emit("Info", message);
-            if( message.settings !== null ) {
+            if( message["settings"] ) {
                 parent.emit("Settings", message.settings)
             }
             break;

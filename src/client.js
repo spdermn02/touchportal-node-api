@@ -32,6 +32,17 @@ class TouchPortalClient extends EventEmitter {
     });
   }
 
+  removeState(id) {
+    if( this.customStates[id] == undefined ) {
+      this.logIt("ERROR",`removeState: Custom state of ${id} never created, so cannot remove it`);
+      throw new Error(`removeState: Custom state of ${id} never created, so cannot remove it`);
+    }
+    this.send({
+      type: "removeState",
+      id: id
+    });
+  }
+
   choiceUpdate(id, value) {
     if (value.length <= 0) {
       this.logIt( "ERROR","choiceUpdate: value is an empty array");
@@ -88,6 +99,22 @@ class TouchPortalClient extends EventEmitter {
     });
 
     this.sendArray(stateArray);
+  }
+
+  updateActionData(actionInstanceId,data){
+    if( data.id == undefined || data.id === '' || data.minValue == undefined || data.minValue === '' || data.maxValue == undefined || data.maxValue === '' || data.type == undefined || data.type === '' ) {
+      this.logIt('ERROR',"updateActionData : required data is missing from instance", JSON.stringify(data));
+      throw new Error("updateActionData: required data is missing from instance", JSON.stringify(data));
+    }
+    if( data.type !== 'number' ) {
+      this.logIt('ERROR',"updateActionData : only number types are supported");
+      throw new Error("updateActionData: only number types are supported");
+    }
+    this.send({
+      type: "updateActionData",
+      instanceId: actionInstanceId,
+      data: data
+    });
   }
 
   sendArray(dataArray) {

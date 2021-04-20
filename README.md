@@ -43,6 +43,7 @@ v2.1.0 - Updates to add in missed features from TouchPortal SDK v3 updates
   Additions:
     - Support for removeState message type
     - Support for updateActionData message type
+v2.1.1 - Fixed issue with createState and removeState to setup using the object internally to keep track
 ```
 
 ## Usage 

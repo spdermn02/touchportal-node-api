@@ -39,6 +39,10 @@ v2.0.0 - Updates to include new features from Touch Portal 2.3, minor enhancemen
   Bug Fixes:
     - Fixed issue if multiple messages were received at the same time it could cause the json parse to fail and thus causing the code to throw and exception, so now it splits on newlines and works all messages that came in during the read in the order they came in
     - Fixed #5 Issue - forces ids and values to strings during stateUpdate and stateUpdateMany
+v2.1.0 - Updates to add in missed features from TouchPortal SDK v3 updates
+  Additions:
+    - Support for removeState message type
+    - Support for updateActionData message type
 ```
 
 ## Usage 
@@ -141,6 +145,9 @@ TPClient.on("ListChange",(data) => {
    // Now send choiceUpdateSpecific based on listChange value
    TPClient.choiceUpdateSpecific("<state id>","value",data.instanceId)
 
+   // type: number is all that is supported at the moment
+   TPClient.updateActionData(data.instanceId,{id: "unique_id",type:"number",minValue: 1, maxValue: 10})
+
 });
 
 // After join to Touch Portal, it sends an info message
@@ -180,7 +187,7 @@ TPClient.on("Broadcast",(data) = > {
      "pageName":"name of the page switched to"
     }
   */
-
+  
 });
 
 TPClient.on("Settings",(data) => {
@@ -191,6 +198,8 @@ TPClient.on("Settings",(data) => {
       [{"Setting 1":"Value 1"},{"Setting 2":"Value 2"},...,{"Setting N":"Value N"}]
     */
 
+    // Will throw an exception if/when stateIdToRemove has not been created by the Plugin
+    TPClient.removeState("stateIdToRemove");
 });
 
 TPClient.on("Update",(curVersion, remoteVersion) => {

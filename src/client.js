@@ -24,6 +24,7 @@ class TouchPortalClient extends EventEmitter {
       this.logIt("ERROR",`createState: Custom state of ${id} already created`);
       throw new Error(`createState: Custom state of ${id} already created`);
     }
+    this.customStates[id] = desc;
     this.send({
       type: "createState",
       id: id,
@@ -37,6 +38,7 @@ class TouchPortalClient extends EventEmitter {
       this.logIt("ERROR",`removeState: Custom state of ${id} never created, so cannot remove it`);
       throw new Error(`removeState: Custom state of ${id} never created, so cannot remove it`);
     }
+    delete this.customStates[id];
     this.send({
       type: "removeState",
       id: id

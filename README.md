@@ -44,6 +44,9 @@ v2.1.0 - Updates to add in missed features from TouchPortal SDK v3 updates
     - Support for removeState message type
     - Support for updateActionData message type
 v2.1.1 - Fixed issue with createState and removeState to setup using the object internally to keep track
+v2.4.0-beta.1
+  Additions:
+    - Support for connectorChange event from TP v2.4
 ```
 
 ## Usage 
@@ -148,6 +151,41 @@ TPClient.on("ListChange",(data) => {
 
    // type: number is all that is supported at the moment
    TPClient.updateActionData(data.instanceId,{id: "unique_id",type:"number",minValue: 1, maxValue: 10})
+
+});
+
+TPClient.on("ConnectorChange",(data) => {
+  // New ConnectorChange event for v2.4, handle it here
+    /*
+        {
+          "type":"connectorChange",
+          "pluginId":"id of the plugin",
+          "connectorId":"id of the action",
+          "value":"integer number between 0-100",
+          "data": [
+            {
+              "id":"data object id",
+              "value":"user specified data object value"
+            },
+            {
+              "id":"data object id",
+              "value":"user specified data object value"
+            }
+          ]
+        }
+    */
+
+   ...
+
+  // Once your action is done, send a State Update back to Touch Portal
+  TPClient.stateUpdate("<state id>", "value", data.InstanceId);
+
+  // If you have multiple states to send back, you can do that in one call versus separate
+  let states = [
+    { id: "<state id1>", value: "value"},
+    { id: "<state id2>", value: "value1"}
+  ];
+  TPClient.stateUpdateMany(states);
 
 });
 

@@ -248,7 +248,8 @@ class TouchPortalClient extends EventEmitter {
             break;
           case "connectorChange":
             parent.logIt("DEBUG","Connector Change received");
-            parent.emit("ConnectorChange", message)
+            parent.emit("ConnectorChange", message);
+            break;
           case "up":
             parent.logIt("DEBUG","Up Hold Message received");
             parent.emit("Action", message, false);

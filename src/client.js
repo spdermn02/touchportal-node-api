@@ -9,6 +9,7 @@ const pluginVersion = requireFromAppRoot('package.json').version;
 
 const SOCKET_IP = '127.0.0.1';
 const SOCKET_PORT = 12136;
+const CONNECTOR_PREFIX  = 'pc';
 
 class TouchPortalClient extends EventEmitter {
   constructor(options = {}) {
@@ -102,6 +103,41 @@ class TouchPortalClient extends EventEmitter {
 
     this.sendArray(stateArray);
   }
+  connectorUpdate(id,value,data) {
+    this.send(this.buildConnectorUpdate(id,value,data));
+  }
+
+  buildConnectorUpdate(id,value,data) {
+    const newValue = parseInt(value);
+    if( newValue < 0 || newValue > 100 ) {
+      this.logIt("ERROR","connectorUpdate: value has to be between 0 and 100 ${newValue}");
+      throw new Error(`connectorUpdate: value has to be between 0 and 100 ${newValue}`);
+    }
+    let dataStr = '';
+    if( typeof data == 'object' && Array.isArray(data) ) {
+      data.forEach((dataItem,idx) => {
+        dataStr = dataStr.concat("|",dataItem.id,"=",dataItem.value);
+      })
+    }
+    const connectorId = `${CONNECTOR_PREFIX}_${this.pluginId}_${id}${dataStr}`;
+    return {
+      type:"connectorUpdate",
+      connectorId:connectorId,
+      value: newValue
+    };
+  }
+  connectorUpdateMany(connectors) {
+    let connectorArray = [];
+
+    if (connectors.length <= 0) {
+      this.logIt("ERROR","connectorManyUpdate : connectors contains no data");
+      throw new Error("connectorManyUpdate: connectors contains no data");
+    }
+    connectors.forEach((connector) => {
+      connectorArray.push(this.buildConnectorUpdate(connector.id,connector.value,connector.data));
+    });
+    this.sendArray(connectorArray);
+  }
 
   updateActionData(actionInstanceId,data){
     if( data.id == undefined || data.id === '' || data.minValue == undefined || data.minValue === '' || data.maxValue == undefined || data.maxValue === '' || data.type == undefined || data.type === '' ) {
@@ -117,6 +153,20 @@ class TouchPortalClient extends EventEmitter {
       instanceId: actionInstanceId,
       data: data
     });
+  }
+
+  sendNotification(notificationId, title, msg, optionsArray) {
+    if( optionsArray == undefined || optionsArray.length <= 0 ) {
+      this.logIt('ERROR',"sendNotification: at least one option is required");
+      throw new Error("sendNotification: at least one option is required");
+    }
+    this.send({
+     type:"showNotificaiton",
+     notificationId,
+     title,
+     msg,
+     options: optionsArray
+    })
   }
 
   sendArray(dataArray) {
@@ -228,6 +278,10 @@ class TouchPortalClient extends EventEmitter {
             if( message["settings"] ) {
                 parent.emit("Settings", message.settings)
             }
+            break;
+          case "notificationOptionClicked":
+            parent.logIt("DEBUG","Notification Option Clicked");
+            parent.emit("NotificationClicked", message);
             break;
           case "settings":
             parent.logIt("DEBUG","Settings Message received");

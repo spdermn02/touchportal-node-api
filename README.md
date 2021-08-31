@@ -46,7 +46,15 @@ v2.1.0 - Updates to add in missed features from TouchPortal SDK v3 updates
 v2.1.1 - Fixed issue with createState and removeState to setup using the object internally to keep track
 v2.4.0-beta.1
   Additions:
-    - Support for connectorChange event from TP v2.4
+    -Support for new Connectors in To v2.4
+      - Added connectorUpdate function
+      - Added buildConnectorUpdate function
+      - Added connectorUpdateMany function
+      - Support for connectorChange event
+    - Support for new Notification System in v2.4
+      - Added sendNotification function
+      - Support for notificationOptionClick event
+    - 
 ```
 
 ## Usage 
@@ -215,7 +223,7 @@ TPClient.on("Info",(data) => {
 
 });
 
-TPClient.on("Broadcast",(data) = > {
+TPClient.on("Broadcast", (data) => {
 
   // If you want to handle page change events - this is what happens
   // more info here: https://www.touch-portal.com/api/index.php?section=dynamic-actions
@@ -227,6 +235,19 @@ TPClient.on("Broadcast",(data) = > {
     }
   */
   
+});
+
+TPClient.on("NotificationClicked", (data) => {
+  // If you want to handle notificationoption clicked events - this is what happens
+  // more info here: https://www.touch-portal.com/api/index.php?section=notifications
+
+  /*
+    {
+      "type":"notificationOptionClicked",
+      "notificationId":"id of the notification",
+      "optionId":"id of the option"
+    }
+  */
 });
 
 TPClient.on("Settings",(data) => {
@@ -241,12 +262,23 @@ TPClient.on("Settings",(data) => {
     TPClient.removeState("stateIdToRemove");
 });
 
-TPClient.on("Update",(curVersion, remoteVersion) => {
+TPClient.on("Update", (curVersion, remoteVersion) => {
 
     // Do something to indicate to your user there is an update
-    // Open a localhost page, navigate them to the repo about the update, whatever you want to do.
+    // Open a localhost page, navigate them to the repo about the update, whatever you want to do, or utilize the new Notifcation system
     // Note: this is only checked on startup of the application and will not inform users of update until a full restart of Touch Portal or the plugin itself.
+    let optionsArray = [
+      {
+        "id":`${pluginId}Update`,
+        "title":"Take Me to Download"
+      },
+      {
+        "id":`${plugpluginIdId}Ignore`,
+        "title":"Ignore Update"
+      }
+    ];
 
+    TPClient.sendNotification(`${pluginId}UpdateNotification`,"My Plugin has been updated", `A new version of my plugin ${remoteVersion} is available to download`, optionsArray);
 });
 
 //Connects and Pairs to Touch Portal via Sockete

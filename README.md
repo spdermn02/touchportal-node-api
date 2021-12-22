@@ -44,17 +44,16 @@ v2.1.0 - Updates to add in missed features from TouchPortal SDK v3 updates
     - Support for removeState message type
     - Support for updateActionData message type
 v2.1.1 - Fixed issue with createState and removeState to setup using the object internally to keep track
-v2.4.0-beta.1
+v3.0.0
   Additions:
-    -Support for new Connectors in To v2.4
+    -Support for new Connectors in to v3.0.0
       - Added connectorUpdate function
       - Added buildConnectorUpdate function
       - Added connectorUpdateMany function
       - Support for connectorChange event
-    - Support for new Notification System in v2.4
+    - Support for new Notification System in v3.0.0
       - Added sendNotification function
       - Support for notificationOptionClick event
-    - 
 ```
 
 ## Usage 

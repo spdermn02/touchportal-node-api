@@ -44,6 +44,16 @@ v2.1.0 - Updates to add in missed features from TouchPortal SDK v3 updates
     - Support for removeState message type
     - Support for updateActionData message type
 v2.1.1 - Fixed issue with createState and removeState to setup using the object internally to keep track
+v3.0.0
+  Additions:
+    -Support for new Connectors in to v3.0.0
+      - Added connectorUpdate function
+      - Added buildConnectorUpdate function
+      - Added connectorUpdateMany function
+      - Support for connectorChange event
+    - Support for new Notification System in v3.0.0
+      - Added sendNotification function
+      - Support for notificationOptionClick event
 ```
 
 ## Usage 
@@ -151,6 +161,51 @@ TPClient.on("ListChange",(data) => {
 
 });
 
+TPClient.on("ConnectorChange",(data) => {
+  // New ConnectorChange event for v2.4, handle it here
+    /*
+        {
+          "type":"connectorChange",
+          "pluginId":"id of the plugin",
+          "connectorId":"id of the action",
+          "value":"integer number between 0-100",
+          "data": [
+            {
+              "id":"data object id",
+              "value":"user specified data object value"
+            },
+            {
+              "id":"data object id",
+              "value":"user specified data object value"
+            }
+          ]
+        }
+    */
+
+   ...
+
+  // Once your action is done, send a State Update back to Touch Portal
+  TPClient.stateUpdate("<state id>", "value", data.InstanceId);
+
+  // If you have multiple states to send back, you can do that in one call versus separate
+  let states = [
+    { id: "<state id1>", value: "value"},
+    { id: "<state id2>", value: "value1"}
+  ];
+  TPClient.stateUpdateMany(states);
+
+  // Or Maybe you need to update a connector (third param is optional)
+  TPClient.connectorUpdate("<connector id1>",45,[{"dataId1":"value1"}]);
+
+  // Or multiple connectors, data key is optional per connector
+  let connectors = [ 
+    { id: "<connector id1">, value: 23, data: [{"dataId1":"value1"}] },
+    { id: "<connector id2">, value: 65 }
+  ]
+  TPClient.connectorUpdateMany(connectors);
+
+});
+
 // After join to Touch Portal, it sends an info message
 // handle it here
 TPClient.on("Info",(data) => {
@@ -177,7 +232,7 @@ TPClient.on("Info",(data) => {
 
 });
 
-TPClient.on("Broadcast",(data) = > {
+TPClient.on("Broadcast", (data) => {
 
   // If you want to handle page change events - this is what happens
   // more info here: https://www.touch-portal.com/api/index.php?section=dynamic-actions
@@ -189,6 +244,19 @@ TPClient.on("Broadcast",(data) = > {
     }
   */
   
+});
+
+TPClient.on("NotificationClicked", (data) => {
+  // If you want to handle notificationoption clicked events - this is what happens
+  // more info here: https://www.touch-portal.com/api/index.php?section=notifications
+
+  /*
+    {
+      "type":"notificationOptionClicked",
+      "notificationId":"id of the notification",
+      "optionId":"id of the option"
+    }
+  */
 });
 
 TPClient.on("Settings",(data) => {
@@ -203,12 +271,23 @@ TPClient.on("Settings",(data) => {
     TPClient.removeState("stateIdToRemove");
 });
 
-TPClient.on("Update",(curVersion, remoteVersion) => {
+TPClient.on("Update", (curVersion, remoteVersion) => {
 
     // Do something to indicate to your user there is an update
-    // Open a localhost page, navigate them to the repo about the update, whatever you want to do.
+    // Open a localhost page, navigate them to the repo about the update, whatever you want to do, or utilize the new Notifcation system
     // Note: this is only checked on startup of the application and will not inform users of update until a full restart of Touch Portal or the plugin itself.
+    let optionsArray = [
+      {
+        "id":`${pluginId}Update`,
+        "title":"Take Me to Download"
+      },
+      {
+        "id":`${plugpluginIdId}Ignore`,
+        "title":"Ignore Update"
+      }
+    ];
 
+    TPClient.sendNotification(`${pluginId}UpdateNotification`,"My Plugin has been updated", `A new version of my plugin ${remoteVersion} is available to download`, optionsArray);
 });
 
 //Connects and Pairs to Touch Portal via Sockete

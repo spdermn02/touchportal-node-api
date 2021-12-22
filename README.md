@@ -194,6 +194,16 @@ TPClient.on("ConnectorChange",(data) => {
   ];
   TPClient.stateUpdateMany(states);
 
+  // Or Maybe you need to update a connector (third param is optional)
+  TPClient.connectorUpdate("<connector id1>",45,[{"dataId1":"value1"}]);
+
+  // Or multiple connectors, data key is optional per connector
+  let connectors = [ 
+    { id: "<connector id1">, value: 23, data: [{"dataId1":"value1"}] },
+    { id: "<connector id2">, value: 65 }
+  ]
+  TPClient.connectorUpdateMany(connectors);
+
 });
 
 // After join to Touch Portal, it sends an info message

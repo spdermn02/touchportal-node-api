@@ -11,6 +11,7 @@ Build a plugin to Touch Portal with Node.JS utlizing this easy to use library.  
 - [Support](#support)
 - [Bugs](#bugs)
 - [Contribute](#contribute)
+- [License](#license)
 - [Touch Portal](#touch-portal)
 
 *NOTE*: Make sure your Touch Portal is up-to-date to use the latest features.
@@ -310,6 +311,9 @@ Please report bugs using the github issues tab
 
 # Contribute
 Feel free to fork this repo and suggest pull requests. I cannot guarantee they will be included, but I'm definitely open to changes, enhancements, bug fixes!
+
+# License
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
 
 # Touch Portal
 If you got here, and are like "WTF is this?" it is for integrating custom functionality as a Touch Portal plugin. check out https://touch-portal.com to learn more about Touch Portal and it's amazing features and community.

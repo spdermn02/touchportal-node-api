@@ -58,18 +58,21 @@ v3.0.0
 v3.1.0
   Additions:
     -Support for Short Ids for Connectors
-      - Added connectorUpdateShortId function
-      - Enhanced connectorUpdateMany function to take id, or shortId
-      - Support for shortConnectorIdNotification event
+      - Updated connectorUpdate function with additional flag to indicate if id is ShortId, default is false
+      - Updated connectorUpdateMany function to take id, or shortId
+      - Support for ConnectorShortIdNotification event
 ```
 
 ## Usage 
 ### Install using npm
+
 ```shell
 npm install --save touchportal-api
 ```
+
 ### How To Use
 What is described below, is pretty basic functionality, the usage of the below is very basic, and not intended to describe the full complexity of a plugin.
+
 ```javascript
 const TouchPortalAPI = require('touchportal-api');
 
@@ -168,8 +171,8 @@ TPClient.on("ListChange",(data) => {
 
 });
 
-TPClient.on("shortConnectorIdNotification",(data) => {
-  // New with API v5 of TP Connectors can have shortId's when connectorIds can become too long
+TPClient.on("ConnectorShortIdNotification",(data) => {
+  // New with API v5 of TP, Connectors can have shortIds to link to a connectorId
   // {
   //     "type":"shortConnectorIdNotification",
   //     "pluginId":"id of the plugin",
@@ -217,10 +220,11 @@ TPClient.on("ConnectorChange",(data) => {
   // Or Maybe you need to update a connector (third param is optional)
   TPClient.connectorUpdate("<connector id1>",45,[{"dataId1":"value1"}]);
 
-  // New function ality to send shortId instead of full connectorId, doesn't reqiure data values
-  TPClient.connectorUpdateShortId("shortId",45);
+  // update to function to take in 4th param of true/false for isShortId, default is false
+  TPClient.connectorUpdate("shortId",45, undefined, true);
 
   // Or multiple connectors, data key is optional per connector
+  // can now take in shortId instead of id
   let connectors = [ 
     { id: "<connector id1">, value: 23, data: [{"dataId1":"value1"}] },
     { id: "<connector id2">, value: 65 },

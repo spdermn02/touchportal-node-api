@@ -103,28 +103,37 @@ class TouchPortalClient extends EventEmitter {
 
     this.sendArray(stateArray);
   }
-  connectorUpdate(id,value,data) {
-    this.send(this.buildConnectorUpdate(id,value,data));
+  
+  connectorUpdate(id,value,data,isShortId = false) {
+    this.send(this.buildConnectorUpdate(id,value,data,isShortId));
   }
 
-  buildConnectorUpdate(id,value,data) {
+  buildConnectorUpdate(id,value,data,isShortId) {
     const newValue = parseInt(value);
     if( newValue < 0 || newValue > 100 ) {
       this.logIt("ERROR","connectorUpdate: value has to be between 0 and 100 ${newValue}");
       throw new Error(`connectorUpdate: value has to be between 0 and 100 ${newValue}`);
     }
-    let dataStr = '';
-    if( typeof data == 'object' && Array.isArray(data) ) {
-      data.forEach((dataItem,idx) => {
-        dataStr = dataStr.concat("|",dataItem.id,"=",dataItem.value);
-      })
-    }
-    const connectorId = `${CONNECTOR_PREFIX}_${this.pluginId}_${id}${dataStr}`;
-    return {
+
+    let connectorUpdateObj = {
       type:"connectorUpdate",
-      connectorId:connectorId,
-      value: newValue
-    };
+      value: newValue,
+    }
+    if( isShortId ) {
+      connectorUpdateObj.shortId = id;
+    }
+    else {
+      let dataStr = '';
+      if( typeof data == 'object' && Array.isArray(data) ) {
+        data.forEach((dataItem,idx) => {
+          dataStr = dataStr.concat("|",dataItem.id,"=",dataItem.value);
+        })
+      }
+
+      const connectorId = `${CONNECTOR_PREFIX}_${this.pluginId}_${id}${dataStr}`;
+      connectorUpdateObj.connectorId = connectorId;
+    }
+    return connectorUpdateObj;
   }
   connectorUpdateMany(connectors) {
     let connectorArray = [];
@@ -134,7 +143,9 @@ class TouchPortalClient extends EventEmitter {
       throw new Error("connectorManyUpdate: connectors contains no data");
     }
     connectors.forEach((connector) => {
-      connectorArray.push(this.buildConnectorUpdate(connector.id,connector.value,connector.data));
+      const isShortId = connector.shortId !== undefined;
+      connector.id = (isShortId) ? connector.shortId : connector.id;
+      connectorArray.push(this.buildConnectorUpdate(connector.id,connector.value,connector.data, isShortId));
     });
     this.sendArray(connectorArray);
   }
@@ -299,6 +310,10 @@ class TouchPortalClient extends EventEmitter {
           case "broadcast":
             parent.logIt("DEBUG","Broadcast Message received");
             parent.emit("Broadcast", message);
+            break;
+          case "shortConnectorIdNotification":
+            parent.logIt("DEBUG","ShortID Connector Notification received");
+            parent.emit("ConnectorShortIdNotification", message);
             break;
           case "connectorChange":
             parent.logIt("DEBUG","Connector Change received");

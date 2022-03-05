@@ -47,7 +47,7 @@ v2.1.0 - Updates to add in missed features from TouchPortal SDK v3 updates
 v2.1.1 - Fixed issue with createState and removeState to setup using the object internally to keep track
 v3.0.0
   Additions:
-    -Support for new Connectors in to v3.0.0
+    - Support for new Connectors in to v3.0.0
       - Added connectorUpdate function
       - Added buildConnectorUpdate function
       - Added connectorUpdateMany function
@@ -55,6 +55,12 @@ v3.0.0
     - Support for new Notification System in v3.0.0
       - Added sendNotification function
       - Support for notificationOptionClick event
+v3.1.0
+  Additions:
+    -Support for Short Ids for Connectors
+      - Added connectorUpdateShortId function
+      - Enhanced connectorUpdateMany function to take id, or shortId
+      - Support for shortConnectorIdNotification event
 ```
 
 ## Usage 
@@ -162,6 +168,19 @@ TPClient.on("ListChange",(data) => {
 
 });
 
+TPClient.on("shortConnectorIdNotification",(data) => {
+  // New with API v5 of TP Connectors can have shortId's when connectorIds can become too long
+  // {
+  //     "type":"shortConnectorIdNotification",
+  //     "pluginId":"id of the plugin",
+  //     "shortId":"shortid of the connector",
+  //     "connectorId":"the long normal connector id"
+  // }
+
+  // The idea is you make your connectorId shorter and be able to use that in connectorUpdate instead of the full connectorId (with prefix etc)
+  // So you will need a map of connectorId -> shortId and shortId -> connectorId (maybe)
+});
+
 TPClient.on("ConnectorChange",(data) => {
   // New ConnectorChange event for v2.4, handle it here
     /*
@@ -198,10 +217,14 @@ TPClient.on("ConnectorChange",(data) => {
   // Or Maybe you need to update a connector (third param is optional)
   TPClient.connectorUpdate("<connector id1>",45,[{"dataId1":"value1"}]);
 
+  // New function ality to send shortId instead of full connectorId, doesn't reqiure data values
+  TPClient.connectorUpdateShortId("shortId",45);
+
   // Or multiple connectors, data key is optional per connector
   let connectors = [ 
     { id: "<connector id1">, value: 23, data: [{"dataId1":"value1"}] },
-    { id: "<connector id2">, value: 65 }
+    { id: "<connector id2">, value: 65 },
+    { shortId: "<shortId1">, value: 20 }
   ]
   TPClient.connectorUpdateMany(connectors);
 

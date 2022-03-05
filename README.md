@@ -55,7 +55,7 @@ v3.0.0
     - Support for new Notification System in v3.0.0
       - Added sendNotification function
       - Support for notificationOptionClick event
-v3.1.0
+v3.1.1
   Additions:
     - Support for Short Ids for Connectors
       - Updated connectorUpdate function with additional flag to indicate if id is ShortId, default is false

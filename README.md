@@ -283,7 +283,7 @@ TPClient.on("Update", (curVersion, remoteVersion) => {
         "title":"Take Me to Download"
       },
       {
-        "id":`${plugpluginIdId}Ignore`,
+        "id":`${pluginId}Ignore`,
         "title":"Ignore Update"
       }
     ];

@@ -57,7 +57,7 @@ v3.0.0
       - Support for notificationOptionClick event
 v3.1.0
   Additions:
-    -Support for Short Ids for Connectors
+    - Support for Short Ids for Connectors
       - Updated connectorUpdate function with additional flag to indicate if id is ShortId, default is false
       - Updated connectorUpdateMany function to take id, or shortId
       - Support for ConnectorShortIdNotification event

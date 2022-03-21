@@ -42,12 +42,12 @@ class TouchPortalClient extends EventEmitter {
       throw new Error("createStateMany: states contains no data");
     }
 
-    states.forEach((state) => {
-      this.customStates[state.id] = state.desc;
+    states.forEach((state) => {  
       if (this.customStates[state.id]) {
         this.logIt("WARN",`createState: Custom state of ${state.id} already created`);
       }
       else {
+        this.customStates[state.id] = state.desc;
         createStateArray.push({
           type: "createState",
           id: `${state.id}`,

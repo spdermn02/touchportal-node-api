@@ -44,8 +44,8 @@ class TouchPortalClient extends EventEmitter {
 
     states.forEach((state) => {
       this.customStates[state.id] = state.desc;
-      if (this.customStates[id]) {
-        this.logIt("WARN",`createState: Custom state of ${id} already created`);
+      if (this.customStates[state.id]) {
+        this.logIt("WARN",`createState: Custom state of ${state.id} already created`);
       }
       else {
         createStateArray.push({

@@ -61,6 +61,12 @@ v3.1.1
       - Updated connectorUpdate function with additional flag to indicate if id is ShortId, default is false
       - Updated connectorUpdateMany function to take id, or shortId
       - Support for ConnectorShortIdNotification event
+v3.1.2
+  Additions:
+    - Added createStateMany function
+      - This allows state creation to be batched together rather than one at a time.
+  Bug Fixes:
+    - force id, desc, defaultValue on createState to send as a string
 ```
 
 ## Usage 
@@ -257,6 +263,12 @@ TPClient.on("Info",(data) => {
 
     // Dynamic State additions - for use when you want control over what states are available in TouchPortal
     TPClient.createState("<new state id>","Description","Default Value");
+
+    const createStateArray = [
+      { 'id' :'stateId1','desc': 'State Id 1', 'defaultValue': '0' }
+    ]
+
+    TPClient.createStateMany(createStateArray);
 
 });
 

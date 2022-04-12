@@ -270,6 +270,9 @@ class TouchPortalClient extends EventEmitter {
 					parent.logIt("ERROR: Check for Update error=",e.message);
 				}
 			});
+      res.on('error', (error) => {
+        parent.logIt("ERROR","error received attempting to check for update: ",JSON.stringify(error) )
+      })
 		});
 	}
 

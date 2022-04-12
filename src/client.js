@@ -28,10 +28,36 @@ class TouchPortalClient extends EventEmitter {
     this.customStates[id] = desc;
     this.send({
       type: "createState",
-      id: id,
-      desc: desc,
-      defaultValue: defaultValue,
+      id: `${id}`,
+      desc: `${desc}`,
+      defaultValue: `${defaultValue}`,
     });
+  }
+
+  createStateMany(states) {
+    let createStateArray = [];
+
+    if (states.length <= 0) {
+      this.logIt("ERROR","createStateMany : states contains no data");
+      throw new Error("createStateMany: states contains no data");
+    }
+
+    states.forEach((state) => {  
+      if (this.customStates[state.id]) {
+        this.logIt("WARN",`createState: Custom state of ${state.id} already created`);
+      }
+      else {
+        this.customStates[state.id] = state.desc;
+        createStateArray.push({
+          type: "createState",
+          id: `${state.id}`,
+          desc: `${state.desc}`,
+          defaultValue: `${state.defaultValue}`
+        });
+      }
+    });
+
+    this.sendArray(createStateArray);
   }
 
   removeState(id) {
@@ -244,7 +270,12 @@ class TouchPortalClient extends EventEmitter {
 					parent.logIt("ERROR: Check for Update error=",e.message);
 				}
 			});
-		});
+      res.on('error', (error) => {
+        parent.logIt("ERROR","error received attempting to check for update:", error )
+      })
+		}).on('error',(error) => {
+      parent.logIt("ERROR","error received attempting to check for update:", error)
+    });
 	}
 
   connect(options = {}) {

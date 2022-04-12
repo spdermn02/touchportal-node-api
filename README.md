@@ -67,6 +67,7 @@ v3.1.2
       - This allows state creation to be batched together rather than one at a time.
   Bug Fixes:
     - force id, desc, defaultValue on createState to send as a string
+    - Fix update check process to error properly versus killing the process
 ```
 
 ## Usage 

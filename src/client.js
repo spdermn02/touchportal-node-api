@@ -58,7 +58,7 @@ class TouchPortalClient extends EventEmitter {
           desc: `${state.desc}`,
           defaultValue: `${state.defaultValue}`,
         }
-        if( parentGroup != '' || parentGroup !== undefined ) {
+        if( state.parentGroup != '' || state.parentGroup !== undefined ) {
           newState.parentGroup = `${state.parentGroup}`
         }
         createStateArray.push(newState);

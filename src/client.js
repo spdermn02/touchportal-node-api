@@ -20,18 +20,22 @@ class TouchPortalClient extends EventEmitter {
     this.customStates = {};
   }
 
-  createState(id, desc, defaultValue) {
+  createState(id, desc, defaultValue, parentGroup) {
     if (this.customStates[id]) {
       this.logIt("ERROR",`createState: Custom state of ${id} already created`);
       throw new Error(`createState: Custom state of ${id} already created`);
     }
     this.customStates[id] = desc;
-    this.send({
+    const newState = {
       type: "createState",
       id: `${id}`,
       desc: `${desc}`,
       defaultValue: `${defaultValue}`,
-    });
+    }
+    if( parentGroup != '' || parentGroup !== undefined ) {
+      newState.parentGroup = `${parentGroup}`
+    }
+    this.send(newState);
   }
 
   createStateMany(states) {
@@ -48,12 +52,16 @@ class TouchPortalClient extends EventEmitter {
       }
       else {
         this.customStates[state.id] = state.desc;
-        createStateArray.push({
+        const newState = {
           type: "createState",
           id: `${state.id}`,
           desc: `${state.desc}`,
-          defaultValue: `${state.defaultValue}`
-        });
+          defaultValue: `${state.defaultValue}`,
+        }
+        if( state.parentGroup != '' || state.parentGroup !== undefined ) {
+          newState.parentGroup = `${state.parentGroup}`
+        }
+        createStateArray.push(newState);
       }
     });
 
@@ -198,7 +206,7 @@ class TouchPortalClient extends EventEmitter {
       throw new Error("sendNotification: at least one option is required");
     }
     this.send({
-     type:"showNotificaiton",
+     type:"showNotification",
      notificationId,
      title,
      msg,

@@ -68,6 +68,11 @@ v3.1.2
   Bug Fixes:
     - force id, desc, defaultValue on createState to send as a string
     - Fix update check process to error properly versus killing the process
+v3.2.0
+  Additions:
+    - Support for Parent Groups on State creation added in Touch Portal 3.1
+  Bug Fixes:
+    - Fixed Spelling for `showNotification` type sent to Touch Portal, so now Notifications should work properly if you use them.
 ```
 
 ## Usage 

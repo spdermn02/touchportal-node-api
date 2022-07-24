@@ -206,7 +206,7 @@ class TouchPortalClient extends EventEmitter {
       throw new Error("sendNotification: at least one option is required");
     }
     this.send({
-     type:"showNotificaiton",
+     type:"showNotification",
      notificationId,
      title,
      msg,

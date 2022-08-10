@@ -4,7 +4,8 @@
   "description": "TouchPortal API in Node.JS",
   "main": "src/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "eslint src tests"
   },
   "keywords": [
     "TouchPortal"
@@ -15,5 +16,10 @@
   "dependencies": {
     "compare-versions": "^3.6.0",
     "require-from-app-root": "^0.2.1"
+  },
+  "devDependencies": {
+    "eslint": "^8.21.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-plugin-import": "^2.26.0"
   }
 }

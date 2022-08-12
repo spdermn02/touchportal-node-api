@@ -185,7 +185,7 @@ class TouchPortalClient extends EventEmitter {
   updateActionData(actionInstanceId, data) {
     if (data.id === undefined || data.id === '' || data.minValue === undefined || data.minValue === '' || data.maxValue === undefined || data.maxValue === '' || data.type === undefined || data.type === '') {
       this.logIt('ERROR', 'updateActionData : required data is missing from instance', JSON.stringify(data));
-      throw new Error('updateActionData: required data is missing from instance', JSON.stringify(data));
+      throw new Error(`updateActionData: required data is missing from instance. ${JSON.stringify(data)}`);
     }
     if (data.type !== 'number') {
       this.logIt('ERROR', 'updateActionData : only number types are supported');
@@ -299,7 +299,7 @@ class TouchPortalClient extends EventEmitter {
     });
 
     this.socket.on('data', (data) => {
-      const lines = data.split(/(?:\r\n|\r|\n)/);
+      const lines = data.toString().split(/(?:\r\n|\r|\n)/);
 
       lines.forEach((line) => {
         if (line === '') { return; }

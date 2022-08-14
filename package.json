@@ -2,12 +2,12 @@
   "name": "touchportal-api",
   "version": "3.2.1-alpha-1",
   "description": "TouchPortal API in Node.JS",
-  "main": "src/index.js",
-  "types": "types/index.d.ts",
+  "main": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint src tests",
-    "typescript": "tsc"
+    "build": "tsc"
   },
   "keywords": [
     "TouchPortal"

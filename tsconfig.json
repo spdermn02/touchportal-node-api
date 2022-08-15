@@ -16,6 +16,9 @@
     "declarationMap": true,
     // The type definition files go here:
     "outDir": "dist",
-    "esModuleInterop": true
+    // The output will be in ES6, not the default ES3
+    "target": "es6",
+    // modules in src are the old fashioned "node" type modules
+    "moduleResolution":"node",
   }
 }

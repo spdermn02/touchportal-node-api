@@ -1,0 +1,24 @@
+{
+  "include": ["src/**/*.js", "tests/**/*.js"],
+  "compilerOptions": {
+    // Tells TypeScript to read JS files, as
+    // normally they are ignored as source files
+    "allowJs": true,
+    // flag any errors found in .js files
+    "checkJs": true,
+    // Generate d.ts files
+    "declaration": true,
+    // This compiler run should
+    // only output d.ts files
+    "emitDeclarationOnly": false,
+    // go to js file when using IDE functions like
+    // "Go to Definition" in VSCode
+    "declarationMap": true,
+    // The type definition files go here:
+    "outDir": "dist",
+    // The output will be in ES6, not the default ES3
+    "target": "es6",
+    // modules in src are the old fashioned "node" type modules
+    "moduleResolution":"node",
+  }
+}

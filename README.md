@@ -11,6 +11,7 @@ Build a plugin to Touch Portal with Node.JS utlizing this easy to use library.  
 - [Support](#support)
 - [Bugs](#bugs)
 - [Contribute](#contribute)
+  - [Contributors](#contributors)
 - [License](#license)
 - [Touch Portal](#touch-portal)
 
@@ -73,6 +74,9 @@ v3.2.0
     - Support for Parent Groups on State creation added in Touch Portal 3.1
   Bug Fixes:
     - Fixed Spelling for `showNotification` type sent to Touch Portal, so now Notifications should work properly if you use them.
+v3.2.1 - ESLint implementation and Typescript support
+  - Big thank you to riverrun-git for the PR's and the assitance
+  - TypeScript support is just being implemented in increments, more support for it coming soon
 ```
 
 ## Usage 
@@ -85,8 +89,13 @@ npm install --save touchportal-api
 ### How To Use
 What is described below, is pretty basic functionality, the usage of the below is very basic, and not intended to describe the full complexity of a plugin.
 
+
 ```javascript
+// Node.JS style
 const TouchPortalAPI = require('touchportal-api');
+
+// TypeScript style
+//import TouchPortalAPI from 'touchportal-api'
 
 // Create an instance of the Touch Portal Client
 const TPClient = new TouchPortalAPI.Client();
@@ -101,7 +110,6 @@ let heldAction = {};
 
 // Receive an Action Call from Touch Portal
 TPClient.on("Action", (data,hold) => {
-
   //hold parameter can be undefined, true or false
   // undefined => was from "On Press" or "On Event"
   // true => was from "On Hold" down (being held) trigger
@@ -249,7 +257,6 @@ TPClient.on("ConnectorChange",(data) => {
 // After join to Touch Portal, it sends an info message
 // handle it here
 TPClient.on("Info",(data) => {
-
     //Do something with the Info message here
     // NOTE: the "settings" section is already handled and will emit the Settings event, no need to duplicate here, just documenting since it is part of the info message
     /*
@@ -268,7 +275,7 @@ TPClient.on("Info",(data) => {
     TPClient.choiceUpdate("<state id>",["choice1","choice2"]);
 
     // Dynamic State additions - for use when you want control over what states are available in TouchPortal
-    TPClient.createState("<new state id>","Description","Default Value");
+    TPClient.createState("<new state id>","Description","Default Value",undefined);
 
     const createStateArray = [
       { 'id' :'stateId1','desc': 'State Id 1', 'defaultValue': '0' }
@@ -356,7 +363,10 @@ Please report bugs using the github issues tab
 
 # Contribute
 Feel free to fork this repo and suggest pull requests. I cannot guarantee they will be included, but I'm definitely open to changes, enhancements, bug fixes!
-
+## Contributors
+- [Jameson Allen (spdermn02)](https://github.com/spdermn02)
+- [Andreas Schneider (riverrun-git)](https://github.com/riverrun-git)
+- [Pjiesco](https://github.com/pjiesco)
 # License
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
 

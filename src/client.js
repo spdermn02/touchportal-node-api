@@ -47,7 +47,10 @@ class TouchPortalClient extends EventEmitter {
 
     states.forEach((state) => {
       if (this.customStates[state.id]) {
-        this.logIt('WARN', `createState: Custom state of ${state.id} already created`);
+        this.logIt(
+          'WARN',
+          `createState: Custom state of ${state.id} already created`,
+        );
       } else {
         this.customStates[state.id] = state.desc;
         const newState = {
@@ -68,8 +71,13 @@ class TouchPortalClient extends EventEmitter {
 
   removeState(id) {
     if (this.customStates[id] === undefined) {
-      this.logIt('ERROR', `removeState: Custom state of ${id} never created, so cannot remove it`);
-      throw new Error(`removeState: Custom state of ${id} never created, so cannot remove it`);
+      this.logIt(
+        'ERROR',
+        `removeState: Custom state of ${id} never created, so cannot remove it`,
+      );
+      throw new Error(
+        `removeState: Custom state of ${id} never created, so cannot remove it`,
+      );
     }
     delete this.customStates[id];
     this.send({
@@ -88,7 +96,10 @@ class TouchPortalClient extends EventEmitter {
 
   choiceUpdateSpecific(id, value, instanceId) {
     if (value.length <= 0) {
-      this.logIt('ERROR', 'choiceUpdateSpecific : value does not contain data in an array format');
+      this.logIt(
+        'ERROR',
+        'choiceUpdateSpecific : value does not contain data in an array format',
+      );
       throw new Error(
         'choiceUpdateSpecific: value does not contain data in an array format',
       );
@@ -143,8 +154,13 @@ class TouchPortalClient extends EventEmitter {
   buildConnectorUpdate(id, value, data, isShortId) {
     const newValue = parseInt(value, 10);
     if (newValue < 0 || newValue > 100) {
-      this.logIt('ERROR', `connectorUpdate: value has to be between 0 and 100 ${newValue}`);
-      throw new Error(`connectorUpdate: value has to be between 0 and 100 ${newValue}`);
+      this.logIt(
+        'ERROR',
+        `connectorUpdate: value has to be between 0 and 100 ${newValue}`,
+      );
+      throw new Error(
+        `connectorUpdate: value has to be between 0 and 100 ${newValue}`,
+      );
     }
 
     const connectorUpdateObj = {
@@ -176,16 +192,40 @@ class TouchPortalClient extends EventEmitter {
     }
     connectors.forEach((connector) => {
       const isShortId = connector.shortId !== undefined;
-      connector.id = (isShortId) ? connector.shortId : connector.id;
-      connectorArray.push(this.buildConnectorUpdate(connector.id, connector.value, connector.data, isShortId));
+      connector.id = isShortId ? connector.shortId : connector.id;
+      connectorArray.push(
+        this.buildConnectorUpdate(
+          connector.id,
+          connector.value,
+          connector.data,
+          isShortId,
+        ),
+      );
     });
     this.sendArray(connectorArray);
   }
 
   updateActionData(actionInstanceId, data) {
-    if (data.id === undefined || data.id === '' || data.minValue === undefined || data.minValue === '' || data.maxValue === undefined || data.maxValue === '' || data.type === undefined || data.type === '') {
-      this.logIt('ERROR', 'updateActionData : required data is missing from instance', JSON.stringify(data));
-      throw new Error(`updateActionData: required data is missing from instance. ${JSON.stringify(data)}`);
+    if (
+      data.id === undefined ||
+      data.id === '' ||
+      data.minValue === undefined ||
+      data.minValue === '' ||
+      data.maxValue === undefined ||
+      data.maxValue === '' ||
+      data.type === undefined ||
+      data.type === ''
+    ) {
+      this.logIt(
+        'ERROR',
+        'updateActionData : required data is missing from instance',
+        JSON.stringify(data),
+      );
+      throw new Error(
+        `updateActionData: required data is missing from instance. ${JSON.stringify(
+          data,
+        )}`,
+      );
     }
     if (data.type !== 'number') {
       this.logIt('ERROR', 'updateActionData : only number types are supported');
@@ -243,41 +283,53 @@ class TouchPortalClient extends EventEmitter {
 
   checkForUpdate() {
     const parent = this;
-    http.get(this.updateUrl, (res) => {
-      const { statusCode } = res;
+    http
+      .get(this.updateUrl, (res) => {
+        const { statusCode } = res;
 
-      // Any 2xx status code signals a successful response but
-      // here we're only checking for 200.
-      if (statusCode !== 200) {
-        const error = new Error(`${this.pluginId}:ERROR: Request Failed.\nStatus Code: ${statusCode}`);
-        parent.logIt('ERROR', `check for update errored: ${error.message}`);
-        res.resume();
-        return;
-      }
-
-      res.setEncoding('utf8');
-      let updateData = '';
-      res.on('data', (chunk) => {
-        updateData += chunk;
-      });
-      res.on('end', () => {
-        try {
-          const jsonData = JSON.parse(updateData);
-          if (jsonData.version !== null) {
-            if (compareVersions(jsonData.version, pluginVersion) > 0) {
-              parent.emit('Update', pluginVersion, jsonData.version);
-            }
-          }
-        } catch (e) {
-          parent.logIt('ERROR: Check for Update error=', e.message);
+        // Any 2xx status code signals a successful response but
+        // here we're only checking for 200.
+        if (statusCode !== 200) {
+          const error = new Error(
+            `${this.pluginId}:ERROR: Request Failed.\nStatus Code: ${statusCode}`,
+          );
+          parent.logIt('ERROR', `check for update errored: ${error.message}`);
+          res.resume();
+          return;
         }
+
+        res.setEncoding('utf8');
+        let updateData = '';
+        res.on('data', (chunk) => {
+          updateData += chunk;
+        });
+        res.on('end', () => {
+          try {
+            const jsonData = JSON.parse(updateData);
+            if (jsonData.version !== null) {
+              if (compareVersions(jsonData.version, pluginVersion) > 0) {
+                parent.emit('Update', pluginVersion, jsonData.version);
+              }
+            }
+          } catch (e) {
+            parent.logIt('ERROR: Check for Update error=', e.message);
+          }
+        });
+        res.on('error', (error) => {
+          parent.logIt(
+            'ERROR',
+            'error received attempting to check for update:',
+            error,
+          );
+        });
+      })
+      .on('error', (error) => {
+        parent.logIt(
+          'ERROR',
+          'error received attempting to check for update:',
+          error,
+        );
       });
-      res.on('error', (error) => {
-        parent.logIt('ERROR', 'error received attempting to check for update:', error);
-      });
-    }).on('error', (error) => {
-      parent.logIt('ERROR', 'error received attempting to check for update:', error);
-    });
   }
 
   connect(options = {}) {
@@ -302,7 +354,9 @@ class TouchPortalClient extends EventEmitter {
       const lines = data.toString().split(/(?:\r\n|\r|\n)/);
 
       lines.forEach((line) => {
-        if (line === '') { return; }
+        if (line === '') {
+          return;
+        }
         const message = JSON.parse(line);
 
         // Handle internal TP Messages here, else pass to user code

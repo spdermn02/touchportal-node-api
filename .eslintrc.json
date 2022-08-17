@@ -7,13 +7,19 @@
     "extends": [
         "airbnb-base"
     ],
+    "parser": "@typescript-eslint/parser",
     "parserOptions": {
         "ecmaVersion": 13
     },
+    "plugins": [
+        "prettier"
+    ],
     "rules": {
+        "prettier/prettier": "error",
         "global-require": "off",
         "max-len": "off",
         "no-console": "off",
-        "no-param-reassign": "off"
+        "no-param-reassign": "off",
+        "operator-linebreak": "off"
     }
 }

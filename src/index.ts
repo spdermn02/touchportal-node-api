@@ -1,3 +1,5 @@
+const Client = require('./client');
+
 module.exports = {
-  Client: require('./client'),
+  Client,
 };

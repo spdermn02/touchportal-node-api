@@ -1,66 +1,111 @@
-const EventEmitter = require('events');
-const net = require('net');
-const http = require('https');
-const compareVersions = require('compare-versions');
-const { requireFromAppRoot } = require('require-from-app-root');
+import EventEmitter from 'events';
+import net from 'net';
+import http from 'https';
+import compareVersions from 'compare-versions';
+import { requireFromAppRoot } from 'require-from-app-root';
 
-const pluginVersion = requireFromAppRoot('package.json').version;
+const pluginVersion: string = requireFromAppRoot('package.json').version;
 
 const SOCKET_IP = '127.0.0.1';
 const SOCKET_PORT = 12136;
 const CONNECTOR_PREFIX = 'pc';
 
+console.log('Version 2');
+
+type ConnectOptions = {
+  pluginId: string;
+  updateUrl?: string | URL;
+};
+
+type State = {
+  id: string;
+  type: string;
+  desc: string;
+  defaultValue: string;
+  parentGroup?: string;
+};
+
+type StateUpdate = {
+  type: 'stateUpdate';
+  id: string;
+  value: string;
+};
+
+type PairingMessage = {
+  type: string;
+  id: string;
+};
+
+type ActionData = {
+  minValue: number;
+  maxValue: number;
+  id: string;
+  type: 'number';
+};
+
 class TouchPortalClient extends EventEmitter {
+  pluginId: string | null;
+
+  socket: net.Socket | null;
+
+  customStates: Set<string>;
+
+  updateUrl: string | URL | null;
+
   constructor() {
     super();
-    this.touchPortal = null;
     this.pluginId = null;
     this.socket = null;
-    this.customStates = {};
+    this.customStates = new Set<string>();
   }
 
-  createState(id, desc, defaultValue, parentGroup) {
-    if (this.customStates[id]) {
+  createState(
+    id: string,
+    desc: string,
+    defaultValue: string,
+    parentGroup?: string,
+  ): void {
+    if (this.customStates.has(id)) {
       this.logIt('ERROR', `createState: Custom state of ${id} already created`);
       throw new Error(`createState: Custom state of ${id} already created`);
     }
-    this.customStates[id] = desc;
-    const newState: any = {
+    this.customStates.add(id);
+    const newState: State = {
       type: 'createState',
-      id: `${id}`,
-      desc: `${desc}`,
-      defaultValue: `${defaultValue}`,
+      id: id.toString(),
+      desc: desc.toString(),
+      defaultValue: defaultValue.toString(),
     };
-    if (parentGroup !== '' || parentGroup !== undefined) {
-      newState.parentGroup = `${parentGroup}`;
+    if (parentGroup) {
+      newState.parentGroup = parentGroup.toString();
     }
     this.send(newState);
   }
 
-  createStateMany(states) {
-    const createStateArray = [];
+  createStateMany(states: State[]): void {
+    const createStateArray: State[] = [];
 
     if (states.length <= 0) {
       this.logIt('ERROR', 'createStateMany : states contains no data');
       throw new Error('createStateMany: states contains no data');
     }
 
-    states.forEach((state) => {
-      if (this.customStates[state.id]) {
+    states.forEach((state: State) => {
+      if (this.customStates.has(state.id)) {
         this.logIt(
           'WARN',
           `createState: Custom state of ${state.id} already created`,
         );
       } else {
-        this.customStates[state.id] = state.desc;
-        const newState: any = {
+        this.customStates.add(state.id);
+        const newState: State = {
           type: 'createState',
-          id: `${state.id}`,
-          desc: `${state.desc}`,
-          defaultValue: `${state.defaultValue}`,
+          id: state.id.toString(),
+          desc: state.desc.toString(),
+          defaultValue: state.defaultValue.toString(),
         };
-        if (state.parentGroup !== '' || state.parentGroup !== undefined) {
-          newState.parentGroup = `${state.parentGroup}`;
+        if (!state.parentGroup) {
+          newState.parentGroup = state.parentGroup.toString();
         }
         createStateArray.push(newState);
       }
@@ -69,8 +114,8 @@ class TouchPortalClient extends EventEmitter {
     this.sendArray(createStateArray);
   }
 
-  removeState(id) {
-    if (this.customStates[id] === undefined) {
+  removeState(id: string): void {
+    if (!this.customStates.has(id)) {
       this.logIt(
         'ERROR',
         `removeState: Custom state of ${id} never created, so cannot remove it`,
@@ -79,14 +124,14 @@ class TouchPortalClient extends EventEmitter {
         `removeState: Custom state of ${id} never created, so cannot remove it`,
       );
     }
-    delete this.customStates[id];
+    this.customStates.delete(id);
     this.send({
       type: 'removeState',
-      id,
+      id: id.toString(),
     });
   }
 
-  choiceUpdate(id, value) {
+  choiceUpdate(id: string, value: string[]): void {
     if (value.length <= 0) {
       this.logIt('ERROR', 'choiceUpdate: value is an empty array');
       throw new Error('choiceUpdate: value is an empty array');
@@ -94,7 +139,7 @@ class TouchPortalClient extends EventEmitter {
     this.send({ type: 'choiceUpdate', id, value });
   }
 
-  choiceUpdateSpecific(id, value, instanceId) {
+  choiceUpdateSpecific(id: string, value: string[], instanceId: string): void {
     if (value.length <= 0) {
       this.logIt(
         'ERROR',
@@ -104,7 +149,7 @@ class TouchPortalClient extends EventEmitter {
         'choiceUpdateSpecific: value does not contain data in an array format',
       );
     }
-    if (!instanceId || instanceId === '') {
+    if (!instanceId) {
       this.logIt('ERROR', 'choiceUpdateSpecific : instanceId is not populated');
       throw new Error('choiceUpdateSpecific: instanceId is not populated');
     }
@@ -116,7 +161,7 @@ class TouchPortalClient extends EventEmitter {
     });
   }
 
-  settingUpdate(name, value) {
+  settingUpdate(name: string, value: string): void {
     this.send({
       type: 'settingUpdate',
       name,
@@ -124,35 +169,50 @@ class TouchPortalClient extends EventEmitter {
     });
   }
 
-  stateUpdate(id, value) {
-    this.send({ type: 'stateUpdate', id: `${id}`, value: `${value}` });
+  stateUpdate(id: string, value: string): void {
+    const update: StateUpdate = {
+      type: 'stateUpdate',
+      id: id.toString(),
+      value: value.toString(),
+    };
+    this.send(update);
   }
 
-  stateUpdateMany(states) {
-    const stateArray = [];
+  stateUpdateMany(updates: StateUpdate[]): void {
+    const stateUpdateArray: StateUpdate[] = [];
 
-    if (states.length <= 0) {
+    if (updates.length <= 0) {
       this.logIt('ERROR', 'stateUpdateMany : states contains no data');
       throw new Error('stateUpdateMany: states contains no data');
     }
 
-    states.forEach((state) => {
-      stateArray.push({
+    updates.forEach((update: StateUpdate) => {
+      stateUpdateArray.push({
         type: 'stateUpdate',
-        id: `${state.id}`,
-        value: `${state.value}`,
+        id: update.id.toString(),
+        value: update.value.toString(),
       });
     });
 
-    this.sendArray(stateArray);
+    this.sendArray(stateUpdateArray);
   }
 
-  connectorUpdate(id, value, data, isShortId = false) {
+  connectorUpdate(
+    id: string,
+    value: string,
+    data: any,
+    isShortId = false,
+  ): void {
     this.send(this.buildConnectorUpdate(id, value, data, isShortId));
   }
 
-  buildConnectorUpdate(id, value, data, isShortId) {
-    const newValue = parseInt(value, 10);
+  buildConnectorUpdate(
+    id: string,
+    value: string,
+    data: any,
+    isShortId: boolean,
+  ): void {
+    const newValue: number = parseInt(value, 10);
     if (newValue < 0 || newValue > 100) {
       this.logIt(
         'ERROR',
@@ -183,7 +243,7 @@ class TouchPortalClient extends EventEmitter {
     return connectorUpdateObj;
   }
 
-  connectorUpdateMany(connectors) {
+  connectorUpdateMany(connectors: any[]): void {
     const connectorArray = [];
 
     if (connectors.length <= 0) {
@@ -205,17 +265,8 @@ class TouchPortalClient extends EventEmitter {
     this.sendArray(connectorArray);
   }
 
-  updateActionData(actionInstanceId, data) {
-    if (
-      data.id === undefined ||
-      data.id === '' ||
-      data.minValue === undefined ||
-      data.minValue === '' ||
-      data.maxValue === undefined ||
-      data.maxValue === '' ||
-      data.type === undefined ||
-      data.type === ''
-    ) {
+  updateActionData(actionInstanceId: string, data: ActionData): void {
+    if (!data.id || !data.minValue || !data.maxValue || !data.type) {
       this.logIt(
         'ERROR',
         'updateActionData : required data is missing from instance',
@@ -238,8 +289,13 @@ class TouchPortalClient extends EventEmitter {
     });
   }
 
-  sendNotification(notificationId, title, msg, optionsArray) {
-    if (optionsArray === undefined || optionsArray.length <= 0) {
+  sendNotification(
+    notificationId: string,
+    title: string,
+    msg: string,
+    optionsArray: any,
+  ): void {
+    if (!optionsArray || optionsArray.length <= 0) {
       this.logIt('ERROR', 'sendNotification: at least one option is required');
       throw new Error('sendNotification: at least one option is required');
     }
@@ -252,7 +308,7 @@ class TouchPortalClient extends EventEmitter {
     });
   }
 
-  sendArray(dataArray) {
+  sendArray(dataArray: any[]): void {
     let dataStr = '';
     if (dataArray.length <= 0) {
       this.logIt('ERROR', 'sendArray : dataArray has no length');
@@ -269,19 +325,19 @@ class TouchPortalClient extends EventEmitter {
     this.socket.write(dataStr);
   }
 
-  send(data) {
+  send(data: any): void {
     this.socket.write(`${JSON.stringify(data)}\n`);
   }
 
-  pair() {
-    const pairMsg = {
+  pair(): void {
+    const pairMsg: PairingMessage = {
       type: 'pair',
       id: this.pluginId,
     };
     this.send(pairMsg);
   }
 
-  checkForUpdate() {
+  checkForUpdate(): void {
     const parent = this;
     http
       .get(this.updateUrl, (res) => {
@@ -290,7 +346,7 @@ class TouchPortalClient extends EventEmitter {
         // Any 2xx status code signals a successful response but
         // here we're only checking for 200.
         if (statusCode !== 200) {
-          const error = new Error(
+          const error: Error = new Error(
             `${this.pluginId}:ERROR: Request Failed.\nStatus Code: ${statusCode}`,
           );
           parent.logIt('ERROR', `check for update errored: ${error.message}`);
@@ -332,12 +388,12 @@ class TouchPortalClient extends EventEmitter {
       });
   }
 
-  connect(options: any = {}) {
+  connect(options: ConnectOptions): void {
     const { pluginId, updateUrl } = options;
     this.pluginId = pluginId;
     const parent = this;
 
-    if (updateUrl !== undefined) {
+    if (updateUrl) {
       this.updateUrl = updateUrl;
       this.checkForUpdate();
     }
@@ -429,7 +485,7 @@ class TouchPortalClient extends EventEmitter {
     });
   }
 
-  logIt(...args) {
+  logIt(...args: any): void {
     const curTime = new Date().toISOString();
     const message = args;
     const type = message.shift();
@@ -437,4 +493,4 @@ class TouchPortalClient extends EventEmitter {
   }
 }
 
-module.exports = TouchPortalClient;
+export default TouchPortalClient;

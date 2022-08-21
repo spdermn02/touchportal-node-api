@@ -10,8 +10,6 @@ const SOCKET_IP = '127.0.0.1';
 const SOCKET_PORT = 12136;
 const CONNECTOR_PREFIX = 'pc';
 
-console.log('Version 3');
-
 type ConnectOptions = {
   pluginId: string;
   updateUrl?: string | URL;

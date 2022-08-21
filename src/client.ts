@@ -25,7 +25,7 @@ class TouchPortalClient extends EventEmitter {
       throw new Error(`createState: Custom state of ${id} already created`);
     }
     this.customStates[id] = desc;
-    const newState = {
+    const newState: any = {
       type: 'createState',
       id: `${id}`,
       desc: `${desc}`,
@@ -53,7 +53,7 @@ class TouchPortalClient extends EventEmitter {
         );
       } else {
         this.customStates[state.id] = state.desc;
-        const newState = {
+        const newState: any = {
           type: 'createState',
           id: `${state.id}`,
           desc: `${state.desc}`,
@@ -163,7 +163,7 @@ class TouchPortalClient extends EventEmitter {
       );
     }
 
-    const connectorUpdateObj = {
+    const connectorUpdateObj: any = {
       type: 'connectorUpdate',
       value: newValue,
     };
@@ -332,7 +332,7 @@ class TouchPortalClient extends EventEmitter {
       });
   }
 
-  connect(options = {}) {
+  connect(options: any = {}) {
     const { pluginId, updateUrl } = options;
     this.pluginId = pluginId;
     const parent = this;

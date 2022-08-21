@@ -20,5 +20,7 @@
     "target": "es6",
     // modules in src are the old fashioned "node" type modules
     "moduleResolution":"node",
+    "module":"CommonJS",
+    "esModuleInterop": true,
   }
 }

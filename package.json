@@ -6,8 +6,8 @@
   "types": "dist/src/index.d.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "lint": "eslint src tests",
-    "build": "tsc"
+    "lint": "eslint src tests --ext .ts",
+    "build": "tsc && prettier -w dist"
   },
   "keywords": [
     "TouchPortal"

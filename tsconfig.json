@@ -1,11 +1,6 @@
 {
   "include": ["src", "tests"],
   "compilerOptions": {
-    // Tells TypeScript to read JS files, as
-    // normally they are ignored as source files
-    "allowJs": true,
-    // flag any errors found in .js files
-    "checkJs": true,
     // Generate d.ts files
     "declaration": true,
     // This compiler run should

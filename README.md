@@ -155,7 +155,6 @@ TPClient.on("Action", (data,hold) => {
     if( hold === undefined || !heldAction[message.actionId] ) { break; }
   }
 
-  ...
 
   // Once your action is done, send a State Update back to Touch Portal
   TPClient.stateUpdate("<state id>", "value", data.InstanceId);
@@ -181,7 +180,6 @@ TPClient.on("ListChange",(data) => {
         }
     */
 
-   ...
 
    // Now send choiceUpdateSpecific based on listChange value
    TPClient.choiceUpdateSpecific("<state id>","value",data.instanceId)
@@ -246,9 +244,9 @@ TPClient.on("ConnectorChange",(data) => {
   // Or multiple connectors, data key is optional per connector
   // can now take in shortId instead of id
   let connectors = [ 
-    { id: "<connector id1">, value: 23, data: [{"dataId1":"value1"}] },
-    { id: "<connector id2">, value: 65 },
-    { shortId: "<shortId1">, value: 20 }
+    { id: "<connector id1>", value: 23, data: [{"dataId1":"value1"}] },
+    { id: "<connector id2>", value: 65 },
+    { shortId: "<shortId1>", value: 20 }
   ]
   TPClient.connectorUpdateMany(connectors);
 
@@ -320,14 +318,14 @@ TPClient.on("Settings",(data) => {
       [{"Setting 1":"Value 1"},{"Setting 2":"Value 2"},...,{"Setting N":"Value N"}]
     */
 
-    // Will throw an exception if/when stateIdToRemove has not been created by the Plugin
+    // Will throw an exception if/when stateIdToRemove has not been created by the Plugin.
     TPClient.removeState("stateIdToRemove");
 });
 
 TPClient.on("Update", (curVersion, remoteVersion) => {
 
-    // Do something to indicate to your user there is an update
-    // Open a localhost page, navigate them to the repo about the update, whatever you want to do, or utilize the new Notifcation system
+    // Do something to indicate to your user there is an update.
+    // Open a localhost page, navigate them to the repo about the update, whatever you want to do, or utilize the new Notifcation system.
     // Note: this is only checked on startup of the application and will not inform users of update until a full restart of Touch Portal or the plugin itself.
     let optionsArray = [
       {
@@ -343,10 +341,10 @@ TPClient.on("Update", (curVersion, remoteVersion) => {
     TPClient.sendNotification(`${pluginId}UpdateNotification`,"My Plugin has been updated", `A new version of my plugin ${remoteVersion} is available to download`, optionsArray);
 });
 
-//Connects and Pairs to Touch Portal via Sockete
+// Connects and Pairs to Touch Portal via Socket.
 TPClient.connect({ pluginId });
 
-//If you want touchportal-node-api to check for updates on startup, 
+// If you want touchportal-node-api to check for updates on startup.
 TPClient.connect({ pluginId, "updateUrl":"<url to remote entry.tp file>" });
 
 ```

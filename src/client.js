@@ -19,67 +19,121 @@ class TouchPortalClient extends EventEmitter {
     this.customStates = {};
   }
 
+  stateHelper(states, stateType) {
+    /**
+     * Internal helper method for states
+     * 
+     * @param {Array<Object>} states - Array of object containing id,
+     * desc, defaultValue, optionally parentGroup.
+     * @param {String} stateType - TouchPortal state type removeState
+     * or createState.
+     * 
+     * @return {Array<Object>}
+     */
+    const stateArray = [];
+    if (!(typeof states == "object" || states.length)) {
+      this.logIt('ERROR', `${stateType} has to be vaild object.`)
+    }
+    states.forEach((state) => {
+      const stateObject = {
+        type: `${stateType}`,
+        id: `${state.id}`
+      };
+      if (`${stateType}` === "createState") {
+        if (this.customStates[state.id]) {
+          this.logIt('ERROR', `createState: Custom state of ${state.id} already created`);
+          throw new Error(`createState: Custom state of ${state.id} already created`);
+        };
+        stateObject.desc = state.desc;
+        stateObject.defaultValue = state.defaultValue
+        if (state.parentGroup) {
+          stateObject.parentGroup = `${state.parentGroup}`;
+        };
+      } else if (`${stateType}` === "removeState") {
+        if (!this.customStates.hasOwnProperty(state.id)) {
+          this.logIt('ERROR', `removeState: Custom state of ${state.id} never created, so cannot remove it`);
+          throw new Error(`removeState: Custom state of ${state.id} never created, so cannot remove it`);
+        }
+        delete this.customStates[state.id];
+      }
+      stateArray.push(stateObject);
+    })
+    return stateArray;
+  }
+
   createState(id, desc, defaultValue, parentGroup) {
-    if (this.customStates[id]) {
-      this.logIt('ERROR', `createState: Custom state of ${id} already created`);
-      throw new Error(`createState: Custom state of ${id} already created`);
-    }
+    /**
+     * createState() allows you to create a state during runtime.
+     * 
+     * @param {String} id - unquie state id
+     * @param {String} desc - description of the state
+     * @param {String} defaultValue - default value for the state
+     * @param {String} parentGroup - Optionally parentGroup
+     * 
+     * @return {void}
+     */
     this.customStates[id] = desc;
-    const newState = {
-      type: 'createState',
-      id: `${id}`,
-      desc: `${desc}`,
-      defaultValue: `${defaultValue}`,
-    };
-    if (parentGroup !== '' || parentGroup !== undefined) {
-      newState.parentGroup = `${parentGroup}`;
-    }
-    this.send(newState);
+    const stateArray = this.stateHelper(
+      {
+        "id": id,
+        "desc": desc,
+        "defaultValue": defaultValue,
+        "parentGroup": parentGroup
+      },
+      "createState"
+    )
+    this.sendArray(stateArray)
   }
 
   createStateMany(states) {
-    const createStateArray = [];
-
-    if (states.length <= 0) {
-      this.logIt('ERROR', 'createStateMany : states contains no data');
-      throw new Error('createStateMany: states contains no data');
-    }
-
-    states.forEach((state) => {
-      if (this.customStates[state.id]) {
-        this.logIt('WARN', `createState: Custom state of ${state.id} already created`);
-      } else {
-        this.customStates[state.id] = state.desc;
-        const newState = {
-          type: 'createState',
-          id: `${state.id}`,
-          desc: `${state.desc}`,
-          defaultValue: `${state.defaultValue}`,
-        };
-        if (state.parentGroup !== '' || state.parentGroup !== undefined) {
-          newState.parentGroup = `${state.parentGroup}`;
-        }
-        createStateArray.push(newState);
-      }
-    });
-
-    this.sendArray(createStateArray);
+    /**
+     * createStateMany() convenience function that
+     * allows you to create several states at once.
+     * 
+     * @param {Array<Object>} states - An array of object contains
+     * state id, state desc, defaultValue and optionally parentGroup.
+     * 
+     * @return {void}
+     */
+    const stateArray = this.stateHelper(states, "createState")
+    this.sendArray(stateArray)
   }
 
   removeState(id) {
-    if (this.customStates[id] === undefined) {
-      this.logIt('ERROR', `removeState: Custom state of ${id} never created, so cannot remove it`);
-      throw new Error(`removeState: Custom state of ${id} never created, so cannot remove it`);
-    }
-    delete this.customStates[id];
-    this.send({
-      type: 'removeState',
-      id,
-    });
+    /**
+     * removeState() Allows you to remove certain states.
+     * 
+     * @param {String} id - state id state that you want to remove.
+     * 
+     * @return {void}
+     */
+    const stateArray = this.stateHelper({"id": id}, "removeState")
+    this.sendArray(stateArray)
+  }
+
+  removeStateMany(states) {
+    /**
+     * removeStateMany() convenience function to remove
+     * several states at once.
+     * 
+     * @param {Array<String>} states - A list of state id
+     * 
+     * @return {void}
+     */
+    const stateArray = this.stateHelper(states, "removeState")
+    this.sendArray(stateArray)
   }
 
   choiceUpdate(id, value) {
-    if (value.length <= 0) {
+    /**
+     * choiceUpdate() updates a choice data from a action.
+     * 
+     * @param {string} id - action choice data id
+     * @param {Array<String>} value - array of string
+     * 
+     * @return {void}
+     */
+    if (!(typeof value === "object")) {
       this.logIt('ERROR', 'choiceUpdate: value is an empty array');
       throw new Error('choiceUpdate: value is an empty array');
     }
@@ -87,13 +141,23 @@ class TouchPortalClient extends EventEmitter {
   }
 
   choiceUpdateSpecific(id, value, instanceId) {
-    if (value.length <= 0) {
+    /**
+     * choiceUpdateSpecific() allows you to update a specific 
+     * instances action data choices
+     * 
+     * @param {String} id - action choice data id
+     * @param {Array<String>} value - Array of strings.
+     * @param {string} instanceId - instanceId of the action
+     * 
+     * @return {void}
+     */
+    if (!value) {
       this.logIt('ERROR', 'choiceUpdateSpecific : value does not contain data in an array format');
       throw new Error(
         'choiceUpdateSpecific: value does not contain data in an array format',
       );
     }
-    if (!instanceId || instanceId === '') {
+    if (!instanceId) {
       this.logIt('ERROR', 'choiceUpdateSpecific : instanceId is not populated');
       throw new Error('choiceUpdateSpecific: instanceId is not populated');
     }
@@ -106,6 +170,14 @@ class TouchPortalClient extends EventEmitter {
   }
 
   settingUpdate(name, value) {
+    /**
+     * settingUpdate() allows you to update your plugin settings.
+     * 
+     * @param {String} name - setting name
+     * @param {String} value - new setting value
+     * 
+     * @return {void}
+     */
     this.send({
       type: 'settingUpdate',
       name,
@@ -114,10 +186,28 @@ class TouchPortalClient extends EventEmitter {
   }
 
   stateUpdate(id, value) {
+    /**
+     * stateUpdate() allows you to update a states from the plugin either
+     * created in entry.tp or dynamically created.
+     * 
+     * @param {String} id - state id
+     * @param {String} value - a new value for the state.
+     * 
+     * @return {void}
+     */
     this.send({ type: 'stateUpdate', id: `${id}`, value: `${value}` });
   }
 
   stateUpdateMany(states) {
+    /**
+     * stateUpdateMany() a method that allows you to update multiple
+     * states at once
+     * 
+     * @param {Array<object>} states - An array of object containing state id
+     * and state value
+     * 
+     * @return {void} 
+     */
     const stateArray = [];
 
     if (states.length <= 0) {
@@ -141,6 +231,14 @@ class TouchPortalClient extends EventEmitter {
   }
 
   buildConnectorUpdate(id, value, data, isShortId) {
+    /**
+     * @param {String} id - connector id
+     * @param {number} value - connector value from 0 to 100.
+     * @param {Array<object>} data - An array of object containing
+     * id and value
+     * 
+     * @return {Object}
+     */
     const newValue = parseInt(value, 10);
     if (newValue < 0 || newValue > 100) {
       this.logIt('ERROR', `connectorUpdate: value has to be between 0 and 100 ${newValue}`);
@@ -168,6 +266,12 @@ class TouchPortalClient extends EventEmitter {
   }
 
   connectorUpdateMany(connectors) {
+    /**
+     * @param {Array<Object>} connectors - An array list of object containing shortId
+     * or normal connector id, value 0-100 and connector data.
+     * 
+     * @return {void}
+     */
     const connectorArray = [];
 
     if (connectors.length <= 0) {
@@ -183,7 +287,16 @@ class TouchPortalClient extends EventEmitter {
   }
 
   updateActionData(actionInstanceId, data) {
-    if (data.id === undefined || data.id === '' || data.minValue === undefined || data.minValue === '' || data.maxValue === undefined || data.maxValue === '' || data.type === undefined || data.type === '') {
+    /**
+     * updateActionData() allows you dynamically update action data field
+     * minValue and maxValue
+     * 
+     * @param {String} actionInstanceId - action instance Id
+     * @param {Object} data - an object that contains minValue, maxValue, id and type
+     * 
+     * @return {void}
+     */
+    if (!data.id || !data.minValue || !data.maxValue || !data.type) {
       this.logIt('ERROR', 'updateActionData : required data is missing from instance', JSON.stringify(data));
       throw new Error(`updateActionData: required data is missing from instance. ${JSON.stringify(data)}`);
     }
@@ -199,6 +312,19 @@ class TouchPortalClient extends EventEmitter {
   }
 
   sendNotification(notificationId, title, msg, optionsArray) {
+    /**
+     * sendNotification() this method allows your plugin to send
+     * notification to TouchPortal with a custom title, message
+     * actions buttons.
+     * 
+     * @param {String} notificationId - Unique ID of this notification
+     * @param {String} title - The notification title
+     * @param {String} msg - The message body text that is shown in the notification.
+     * @param {Array<Object>} optionsArray - List of options (actions) for the
+     * notification. Each options should be a object containing `id` and `title` keys.
+     * 
+     * @return {void}
+     */
     if (optionsArray === undefined || optionsArray.length <= 0) {
       this.logIt('ERROR', 'sendNotification: at least one option is required');
       throw new Error('sendNotification: at least one option is required');
@@ -213,6 +339,12 @@ class TouchPortalClient extends EventEmitter {
   }
 
   sendArray(dataArray) {
+    /**
+     * sendArray() Internal method that combines multiple TouchPortal messages into one and send it.
+     * @param {Array<Object>} dataArray - An array of objects  
+     * 
+     * @return {void}
+     */
     let dataStr = '';
     if (dataArray.length <= 0) {
       this.logIt('ERROR', 'sendArray : dataArray has no length');
@@ -230,10 +362,22 @@ class TouchPortalClient extends EventEmitter {
   }
 
   send(data) {
+    /**
+     * send() Normally you wouldn't need to use this method directly, but if this library
+     * does not cover something from TP api, this could be used instead.
+     * @param {Object} data - TouchPortal socket message
+     * 
+     * @return {void}
+     */
     this.socket.write(`${JSON.stringify(data)}\n`);
   }
 
   pair() {
+    /**
+     * pair() Internal helper method that sends pair message to TouchPortal. 
+     * 
+     * @return {void}
+     */
     const pairMsg = {
       type: 'pair',
       id: this.pluginId,
@@ -241,14 +385,22 @@ class TouchPortalClient extends EventEmitter {
     this.send(pairMsg);
   }
 
-  checkForUpdate() {
+  checkForUpdate(updateUrl) {
+    /**
+     * checkForUpdate() A method that http request
+     * to a Json that contains `version` key to compare.
+     * 
+     * @param {String} updateUrl - webpage url contains json
+     * 
+     * @return {void}
+     */
     const parent = this;
-    http.get(this.updateUrl, (res) => {
+    http.get(updateUrl, (res) => {
       const { statusCode } = res;
 
       // Any 2xx status code signals a successful response but
       // here we're only checking for 200.
-      if (statusCode !== 200) {
+      if (statusCode >= 200 && statusCode <= 299) {
         const error = new Error(`${this.pluginId}:ERROR: Request Failed.\nStatus Code: ${statusCode}`);
         parent.logIt('ERROR', `check for update errored: ${error.message}`);
         res.resume();
@@ -280,14 +432,21 @@ class TouchPortalClient extends EventEmitter {
     });
   }
 
-  connect(options = {}) {
-    const { pluginId, updateUrl } = options;
+  connect(pluginId, updateUrl) {
+    /**
+     * connect() is main method that sets up TouchPortal connections 
+     * and callbacks. 
+     * 
+     * @param {String} pluginId - Plugin id that you've defined in entry.tp
+     * @param {String} updateUrl - Optional automatically checks for updates before starts connection.
+     * 
+     * @returns {void}
+     */
     this.pluginId = pluginId;
     const parent = this;
 
-    if (updateUrl !== undefined) {
-      this.updateUrl = updateUrl;
-      this.checkForUpdate();
+    if (updateUrl) {
+      this.checkForUpdate(updateUrl);
     }
 
     this.socket = new net.Socket();

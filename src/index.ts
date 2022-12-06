@@ -1,8 +1,9 @@
-const EventEmitter = require('events');
-const net = require('net');
-const http = require('https');
-const compareVersions = require('compare-versions');
-const { requireFromAppRoot } = require('require-from-app-root');
+import {EventEmitter} from 'events'
+import * as net from 'net'
+import { requireFromAppRoot } from 'require-from-app-root';
+import * as compareVersions from 'compare-versions';
+import * as http from 'https'
+import {state, stateUpdate, connectorUpdate, connectOptions, createState, dataItem, connector, action, notificationOption } from './modules/types'
 
 const pluginVersion = requireFromAppRoot('package.json').version;
 
@@ -10,16 +11,20 @@ const SOCKET_IP = '127.0.0.1';
 const SOCKET_PORT = 12136;
 const CONNECTOR_PREFIX = 'pc';
 
-class TouchPortalClient extends EventEmitter {
+export class TouchPortalClient extends EventEmitter {
+  pluginId:string
+  socket:net.Socket
+  customStates:object
+  updateUrl:string
+
   constructor() {
     super();
-    this.touchPortal = null;
-    this.pluginId = null;
-    this.socket = null;
+    this.pluginId = "";
+    this.socket = new net.Socket();
     this.customStates = {};
   }
 
-  createState(id, desc, defaultValue, parentGroup) {
+  createState(id:string, desc:string, defaultValue:string, parentGroup?:string) {
     if (this.customStates[id]) {
       this.logIt('ERROR', `createState: Custom state of ${id} already created`);
       throw new Error(`createState: Custom state of ${id} already created`);
@@ -27,18 +32,17 @@ class TouchPortalClient extends EventEmitter {
     this.customStates[id] = desc;
     const newState = {
       type: 'createState',
-      id: `${id}`,
-      desc: `${desc}`,
-      defaultValue: `${defaultValue}`,
+      id: id,
+      desc: desc,
+      defaultValue: defaultValue,
+      parentGroup: (parentGroup !== '' || parentGroup !== undefined) ? parentGroup : undefined
     };
-    if (parentGroup !== '' || parentGroup !== undefined) {
-      newState.parentGroup = `${parentGroup}`;
-    }
+ 
     this.send(newState);
   }
 
-  createStateMany(states) {
-    const createStateArray = [];
+  createStateMany(states:state[]) {
+    let createStateArray:createState[] = [];
 
     if (states.length <= 0) {
       this.logIt('ERROR', 'createStateMany : states contains no data');
@@ -52,13 +56,12 @@ class TouchPortalClient extends EventEmitter {
         this.customStates[state.id] = state.desc;
         const newState = {
           type: 'createState',
-          id: `${state.id}`,
-          desc: `${state.desc}`,
-          defaultValue: `${state.defaultValue}`,
+          id: state.id,
+          desc: state.desc,
+          defaultValue: state.defaultValue,
+          parentGroup: (state.parentGroup !== '' || state.parentGroup !== undefined) ? state.parentGroup : undefined
         };
-        if (state.parentGroup !== '' || state.parentGroup !== undefined) {
-          newState.parentGroup = `${state.parentGroup}`;
-        }
+        
         createStateArray.push(newState);
       }
     });
@@ -66,7 +69,7 @@ class TouchPortalClient extends EventEmitter {
     this.sendArray(createStateArray);
   }
 
-  removeState(id) {
+  removeState(id:string) {
     if (this.customStates[id] === undefined) {
       this.logIt('ERROR', `removeState: Custom state of ${id} never created, so cannot remove it`);
       throw new Error(`removeState: Custom state of ${id} never created, so cannot remove it`);
@@ -78,7 +81,7 @@ class TouchPortalClient extends EventEmitter {
     });
   }
 
-  choiceUpdate(id, value) {
+  choiceUpdate(id:string, value:string) {
     if (value.length <= 0) {
       this.logIt('ERROR', 'choiceUpdate: value is an empty array');
       throw new Error('choiceUpdate: value is an empty array');
@@ -86,7 +89,7 @@ class TouchPortalClient extends EventEmitter {
     this.send({ type: 'choiceUpdate', id, value });
   }
 
-  choiceUpdateSpecific(id, value, instanceId) {
+  choiceUpdateSpecific(id:string, value:string[], instanceId:string) {
     if (value.length <= 0) {
       this.logIt('ERROR', 'choiceUpdateSpecific : value does not contain data in an array format');
       throw new Error(
@@ -105,7 +108,7 @@ class TouchPortalClient extends EventEmitter {
     });
   }
 
-  settingUpdate(name, value) {
+  settingUpdate(name:string, value:string) {
     this.send({
       type: 'settingUpdate',
       name,
@@ -113,12 +116,12 @@ class TouchPortalClient extends EventEmitter {
     });
   }
 
-  stateUpdate(id, value) {
-    this.send({ type: 'stateUpdate', id: `${id}`, value: `${value}` });
+  stateUpdate(id:string, value:string) {
+    this.send({ type: 'stateUpdate', id: id, value: value });
   }
 
-  stateUpdateMany(states) {
-    const stateArray = [];
+  stateUpdateMany(states:state[]) {
+    const stateArray: stateUpdate[] = [];
 
     if (states.length <= 0) {
       this.logIt('ERROR', 'stateUpdateMany : states contains no data');
@@ -128,28 +131,28 @@ class TouchPortalClient extends EventEmitter {
     states.forEach((state) => {
       stateArray.push({
         type: 'stateUpdate',
-        id: `${state.id}`,
-        value: `${state.value}`,
+        id: state.id,
+        value: state.value,
       });
     });
 
     this.sendArray(stateArray);
   }
 
-  connectorUpdate(id, value, data, isShortId = false) {
+  connectorUpdate(id:string, value:string, data:dataItem[], isShortId:boolean = false) {
     this.send(this.buildConnectorUpdate(id, value, data, isShortId));
   }
 
-  buildConnectorUpdate(id, value, data, isShortId) {
+  buildConnectorUpdate(id:string, value:string, data:dataItem[], isShortId:boolean) {
     const newValue = parseInt(value, 10);
     if (newValue < 0 || newValue > 100) {
       this.logIt('ERROR', `connectorUpdate: value has to be between 0 and 100 ${newValue}`);
       throw new Error(`connectorUpdate: value has to be between 0 and 100 ${newValue}`);
     }
 
-    const connectorUpdateObj = {
+    const connectorUpdateObj:connectorUpdate = {
       type: 'connectorUpdate',
-      value: newValue,
+      value: newValue.toString(),
     };
     if (isShortId) {
       connectorUpdateObj.shortId = id;
@@ -167,22 +170,22 @@ class TouchPortalClient extends EventEmitter {
     return connectorUpdateObj;
   }
 
-  connectorUpdateMany(connectors) {
-    const connectorArray = [];
+  connectorUpdateMany(connectors:connector[]) {
+    const connectorArray:connectorUpdate[] = [];
 
     if (connectors.length <= 0) {
       this.logIt('ERROR', 'connectorManyUpdate : connectors contains no data');
       throw new Error('connectorManyUpdate: connectors contains no data');
     }
-    connectors.forEach((connector) => {
-      const isShortId = connector.shortId !== undefined;
-      connector.id = (isShortId) ? connector.shortId : connector.id;
-      connectorArray.push(this.buildConnectorUpdate(connector.id, connector.value, connector.data, isShortId));
+    connectors.forEach((conn) => {
+      const isShortId = conn.shortId !== undefined;
+      conn.id = (isShortId && conn.shortId) ? conn.shortId : conn.id;
+      connectorArray.push(this.buildConnectorUpdate(conn.id, conn.value, conn.data, isShortId));
     });
     this.sendArray(connectorArray);
   }
 
-  updateActionData(actionInstanceId, data) {
+  updateActionData(actionInstanceId:string, data:action) {
     if (data.id === undefined || data.id === '' || data.minValue === undefined || data.minValue === '' || data.maxValue === undefined || data.maxValue === '' || data.type === undefined || data.type === '') {
       this.logIt('ERROR', 'updateActionData : required data is missing from instance', JSON.stringify(data));
       throw new Error(`updateActionData: required data is missing from instance. ${JSON.stringify(data)}`);
@@ -198,7 +201,7 @@ class TouchPortalClient extends EventEmitter {
     });
   }
 
-  sendNotification(notificationId, title, msg, optionsArray) {
+  sendNotification(notificationId:string, title:string, msg:string, optionsArray:notificationOption[]) {
     if (optionsArray === undefined || optionsArray.length <= 0) {
       this.logIt('ERROR', 'sendNotification: at least one option is required');
       throw new Error('sendNotification: at least one option is required');
@@ -212,14 +215,14 @@ class TouchPortalClient extends EventEmitter {
     });
   }
 
-  sendArray(dataArray) {
+  sendArray(dataArray:object[]) {
     let dataStr = '';
     if (dataArray.length <= 0) {
       this.logIt('ERROR', 'sendArray : dataArray has no length');
       throw new Error('sendArray: dataArray has no length');
     }
     dataArray.forEach((element) => {
-      dataStr = `${dataStr + JSON.stringify(element)}\n`;
+      dataStr = dataStr + JSON.stringify(element) + "\n";
     });
 
     if (dataStr == null) {
@@ -229,8 +232,8 @@ class TouchPortalClient extends EventEmitter {
     this.socket.write(dataStr);
   }
 
-  send(data) {
-    this.socket.write(`${JSON.stringify(data)}\n`);
+  send(data:object) {
+    this.socket.write(JSON.stringify(data)+"\n");
   }
 
   pair() {
@@ -280,7 +283,7 @@ class TouchPortalClient extends EventEmitter {
     });
   }
 
-  connect(options = {}) {
+  connect(options:connectOptions = { pluginId: 'UNK'}) {
     const { pluginId, updateUrl } = options;
     this.pluginId = pluginId;
     const parent = this;
@@ -290,8 +293,7 @@ class TouchPortalClient extends EventEmitter {
       this.checkForUpdate();
     }
 
-    this.socket = new net.Socket();
-    this.socket.setEncoding('utf-8');
+    this.socket.setEncoding("utf8");
     this.socket.connect(SOCKET_PORT, SOCKET_IP, () => {
       parent.logIt('INFO', 'Connected to TouchPortal');
       parent.emit('connected');
@@ -382,5 +384,3 @@ class TouchPortalClient extends EventEmitter {
     console.log(curTime, ':', this.pluginId, `:${type}:`, message.join(' '));
   }
 }
-
-module.exports = TouchPortalClient;

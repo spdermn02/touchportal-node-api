@@ -1,15 +1,15 @@
 import {EventEmitter} from 'events'
 import * as net from 'net'
 import { requireFromAppRoot } from 'require-from-app-root';
-import * as compareVersions from 'compare-versions';
+import { compare } from 'compare-versions'
 import * as http from 'https'
 import {state, stateUpdate, connectorUpdate, connectOptions, createState, dataItem, connector, action, notificationOption } from './modules/types'
 
-const pluginVersion = requireFromAppRoot('package.json').version;
+const pluginVersion = requireFromAppRoot('package.json').version
 
-const SOCKET_IP = '127.0.0.1';
-const SOCKET_PORT = 12136;
-const CONNECTOR_PREFIX = 'pc';
+const SOCKET_IP = '127.0.0.1'
+const SOCKET_PORT = 12136
+const CONNECTOR_PREFIX = 'pc'
 
 export class TouchPortalClient extends EventEmitter {
   pluginId:string
@@ -19,9 +19,10 @@ export class TouchPortalClient extends EventEmitter {
 
   constructor() {
     super();
-    this.pluginId = "";
-    this.socket = new net.Socket();
-    this.customStates = {};
+    this.pluginId = ""
+    this.socket = new net.Socket()
+    this.customStates = {}
+    this.updateUrl = ""
   }
 
   createState(id:string, desc:string, defaultValue:string, parentGroup?:string) {
@@ -267,11 +268,11 @@ export class TouchPortalClient extends EventEmitter {
         try {
           const jsonData = JSON.parse(updateData);
           if (jsonData.version !== null) {
-            if (compareVersions(jsonData.version, pluginVersion) > 0) {
+            if ( compare(jsonData.version, pluginVersion,'>') ) {
               parent.emit('Update', pluginVersion, jsonData.version);
             }
           }
-        } catch (e) {
+        } catch (e:any) {
           parent.logIt('ERROR: Check for Update error=', e.message);
         }
       });

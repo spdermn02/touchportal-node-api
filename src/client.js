@@ -15,6 +15,8 @@ class TouchPortalClient extends EventEmitter {
     super();
     this.touchPortal = null;
     this.pluginId = null;
+    this.disableLogs = false;
+    this.exitOnClose = true;
     this.socket = null;
     this.customStates = {};
   }
@@ -281,9 +283,17 @@ class TouchPortalClient extends EventEmitter {
   }
 
   connect(options = {}) {
-    const { pluginId, updateUrl } = options;
+    const { pluginId, updateUrl, disableLogs, exitOnClose } = options;
     this.pluginId = pluginId;
     const parent = this;
+
+    if (typeof disableLogs === 'boolean') {
+      this.disableLogs = disableLogs;
+    }
+
+    if (typeof exitOnClose === 'boolean') {
+      this.exitOnClose = exitOnClose;
+    }
 
     if (updateUrl !== undefined) {
       this.updateUrl = updateUrl;
@@ -354,7 +364,10 @@ class TouchPortalClient extends EventEmitter {
     });
     this.socket.on('error', () => {
       parent.logIt('ERROR', 'Socket Connection closed');
-      process.exit(0);
+      parent.emit('disconnected');
+      if (parent.exitOnClose !== false) {
+          process.exit(0);
+      }
     });
 
     this.socket.on('close', () => {
@@ -366,7 +379,9 @@ class TouchPortalClient extends EventEmitter {
     const curTime = new Date().toISOString();
     const message = args;
     const type = message.shift();
-    console.log(curTime, ':', this.pluginId, `:${type}:`, message.join(' '));
+    if (!this.disableLogs) {
+      console.log(curTime, ':', this.pluginId, `:${type}:`, message.join(' '));
+    }
   }
 }
 

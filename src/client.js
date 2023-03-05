@@ -283,7 +283,9 @@ class TouchPortalClient extends EventEmitter {
   }
 
   connect(options = {}) {
-    const { pluginId, updateUrl, disableLogs, exitOnClose } = options;
+    const {
+      pluginId, updateUrl, disableLogs, exitOnClose,
+    } = options;
     this.pluginId = pluginId;
     const parent = this;
 
@@ -366,7 +368,7 @@ class TouchPortalClient extends EventEmitter {
       parent.logIt('ERROR', 'Socket Connection closed');
       parent.emit('disconnected');
       if (parent.exitOnClose !== false) {
-          process.exit(0);
+        process.exit(0);
       }
     });
 

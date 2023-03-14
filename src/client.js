@@ -321,8 +321,12 @@ class TouchPortalClient extends EventEmitter {
           case 'closePlugin':
             if (message.pluginId === parent.pluginId) {
               parent.emit('Close', message);
-              parent.socket.end();
-              process.exit(0);
+              if (parent.exitOnClose !== false) {
+                parent.socket.end();
+                process.exit(0);
+              } else {
+                parent.emit('disconnected');
+              }
             }
             break;
           case 'info':

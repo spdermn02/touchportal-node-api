@@ -49,6 +49,7 @@ class TouchPortalClient extends EventEmitter {
         if (state.parentGroup) {
           stateObject.parentGroup = `${state.parentGroup}`;
         };
+        this.customStates[state.id] = state.desc;
       } else if (`${stateType}` === "removeState") {
         if (!this.customStates.hasOwnProperty(state.id)) {
           this.logIt('ERROR', `removeState: Custom state of ${state.id} never created, so cannot remove it`);

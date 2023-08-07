@@ -79,21 +79,27 @@ class TouchPortalClient extends EventEmitter {
   }
 
   choiceUpdate(id, value) {
-    if (value.length <= 0) {
-      this.logIt('ERROR', 'choiceUpdate: value is an empty array');
-      throw new Error('choiceUpdate: value is an empty array');
+    if (!id) {
+      this.logIt('ERROR', 'choiceUpdate: ID parameter is empty');
+      throw new Error('choiceUpdate: ID parameter is empty');
+    }
+    if (!value || typeof value.length === 'undefined') {
+      this.logIt('ERROR', 'choiceUpdate : value parameter must be an array');
+      throw new Error( 'choiceUpdate: value parameter must be an array');
     }
     this.send({ type: 'choiceUpdate', id, value });
   }
 
   choiceUpdateSpecific(id, value, instanceId) {
-    if (value.length <= 0) {
-      this.logIt('ERROR', 'choiceUpdateSpecific : value does not contain data in an array format');
-      throw new Error(
-        'choiceUpdateSpecific: value does not contain data in an array format',
-      );
+    if (!id) {
+      this.logIt('ERROR', 'choiceUpdateSpecific: ID parameter is empty');
+      throw new Error('choiceUpdateSpecific: ID parameter is empty');
     }
-    if (!instanceId || instanceId === '') {
+    if (!value || typeof value.length === 'undefined') {
+      this.logIt('ERROR', 'choiceUpdateSpecific : value parameter must be an array');
+      throw new Error('choiceUpdateSpecific: value parameter must be an array');
+    }
+    if (!instanceId) {
       this.logIt('ERROR', 'choiceUpdateSpecific : instanceId is not populated');
       throw new Error('choiceUpdateSpecific: instanceId is not populated');
     }

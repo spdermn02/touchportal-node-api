@@ -366,7 +366,7 @@ class TouchPortalClient extends EventEmitter {
     const curTime = new Date().toISOString();
     const message = args;
     const type = message.shift();
-    console.log(curTime, ':', this.pluginId, `:${type}:`, message.join(' '));
+    console.log(curTime, ':', this.pluginId, `:${type}:`, ...message);
   }
 }
 

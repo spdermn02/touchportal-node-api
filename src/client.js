@@ -230,7 +230,8 @@ class TouchPortalClient extends EventEmitter {
   }
 
   send(data) {
-    this.socket.write(`${JSON.stringify(data)}\n`);
+    this.socket.write(JSON.stringify(data));
+    this.socket.write('\n');
   }
 
   pair() {

@@ -109,6 +109,10 @@ class TouchPortalClient extends EventEmitter {
    */
   removeState(id) {
     // @ts-ignore
+    if (!id) {
+      this.logIt('ERROR', `removeState: ID parameter is empty`);
+      throw new Error(`removeState: ID parameter is empty`);
+    }
     const stateArray = this.stateHelper({"id": id}, "removeState")
     this.sendArray(stateArray)
   }
@@ -372,7 +376,8 @@ class TouchPortalClient extends EventEmitter {
    * @return {void}
    */
   send(data) {
-    this.socket.write(`${JSON.stringify(data)}\n`);
+    this.socket.write(JSON.stringify(data));
+    this.socket.write('\n');
   }
 
   /**
@@ -457,7 +462,6 @@ class TouchPortalClient extends EventEmitter {
     this.socket = new net.Socket();
     this.socket.setEncoding('utf-8');
     this.socket.connect(SOCKET_PORT, SOCKET_IP, () => {
-      parent.logIt('INFO', 'Connected to TouchPortal');
       parent.emit('connected');
       parent.pair();
     });
@@ -474,57 +478,45 @@ class TouchPortalClient extends EventEmitter {
           case 'closePlugin':
             if (message.pluginId === parent.pluginId) {
               parent.emit('Close', message);
-              parent.logIt('WARN', 'received Close Plugin message');
               parent.socket.end();
               process.exit(0);
             }
             break;
           case 'info':
-            parent.logIt('DEBUG', 'Info Message received');
             parent.emit('Info', message);
             if (message.settings) {
               parent.emit('Settings', message.settings);
             }
             break;
           case 'notificationOptionClicked':
-            parent.logIt('DEBUG', 'Notification Option Clicked');
             parent.emit('NotificationClicked', message);
             break;
           case 'settings':
-            parent.logIt('DEBUG', 'Settings Message received');
             // values is the key that is the same as how info contains settings key, for direct settings saving
             parent.emit('Settings', message.values);
             break;
           case 'listChange':
-            parent.logIt('DEBUG', 'ListChange Message received');
             parent.emit('ListChange', message);
             break;
           case 'action':
-            parent.logIt('DEBUG', 'Action Message received');
             parent.emit('Action', message, null);
             break;
           case 'broadcast':
-            parent.logIt('DEBUG', 'Broadcast Message received');
             parent.emit('Broadcast', message);
             break;
           case 'shortConnectorIdNotification':
-            parent.logIt('DEBUG', 'ShortID Connector Notification received');
             parent.emit('ConnectorShortIdNotification', message);
             break;
           case 'connectorChange':
-            parent.logIt('DEBUG', 'Connector Change received');
             parent.emit('ConnectorChange', message);
             break;
           case 'up':
-            parent.logIt('DEBUG', 'Up Hold Message received');
             parent.emit('Action', message, false);
             break;
           case 'down':
-            parent.logIt('DEBUG', 'Down Hold Message received');
             parent.emit('Action', message, true);
             break;
           default:
-            parent.logIt('DEBUG', `Unhandled type received ${message.type}`);
             parent.emit('Message', message);
         }
       });
@@ -543,7 +535,7 @@ class TouchPortalClient extends EventEmitter {
     const curTime = new Date().toISOString();
     const message = args;
     const type = message.shift();
-    console.log(curTime, ':', this.pluginId, `:${type}:`, message.join(' '));
+    console.log(curTime, ':', this.pluginId, `:${type}:`, ...message);
   }
 }
 

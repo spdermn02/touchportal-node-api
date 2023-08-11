@@ -73,7 +73,6 @@ class TouchPortalClient extends EventEmitter {
    * @return {void}
    */
   createState(id, desc, defaultValue, parentGroup) {
-    this.customStates[id] = desc;
     const stateArray = this.stateHelper(
       {
         // @ts-ignore

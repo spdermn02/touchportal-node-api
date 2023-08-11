@@ -83,7 +83,7 @@ class TouchPortalClient extends EventEmitter {
       this.logIt('ERROR', 'choiceUpdate: ID parameter is empty');
       throw new Error('choiceUpdate: ID parameter is empty');
     }
-    if (!value || typeof value.length === 'undefined') {
+    if (!Array.isArray(value)) {
       this.logIt('ERROR', 'choiceUpdate : value parameter must be an array');
       throw new Error( 'choiceUpdate: value parameter must be an array');
     }
@@ -95,7 +95,7 @@ class TouchPortalClient extends EventEmitter {
       this.logIt('ERROR', 'choiceUpdateSpecific: ID parameter is empty');
       throw new Error('choiceUpdateSpecific: ID parameter is empty');
     }
-    if (!value || typeof value.length === 'undefined') {
+    if (!Array.isArray(value)) {
       this.logIt('ERROR', 'choiceUpdateSpecific : value parameter must be an array');
       throw new Error('choiceUpdateSpecific: value parameter must be an array');
     }

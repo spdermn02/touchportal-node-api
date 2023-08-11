@@ -67,9 +67,9 @@ class TouchPortalClient extends EventEmitter {
   }
 
   removeState(id) {
-    if (this.customStates[id] === undefined) {
-      this.logIt('ERROR', `removeState: Custom state of ${id} never created, so cannot remove it`);
-      throw new Error(`removeState: Custom state of ${id} never created, so cannot remove it`);
+    if (!id) {
+      this.logIt('ERROR', `removeState: ID parameter is empty`);
+      throw new Error(`removeState: ID parameter is empty`);
     }
     delete this.customStates[id];
     this.send({

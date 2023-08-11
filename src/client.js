@@ -439,12 +439,14 @@ class TouchPortalClient extends EventEmitter {
    * connect() is main method that sets up TouchPortal connections 
    * and callbacks. 
    * 
-   * @param {String} pluginId - Plugin id that you've defined in entry.tp
-   * @param {String} updateUrl - Optional automatically checks for updates before starts connection.
+   * @param {Object} options - options object that contains infomation about the plugin
+   * @param {String} options.pluginId - pluginId - Plugind id that you've defined in entry.tp
+   * @param {String} options.updateUrl - updateUrl - Optional url to remote entry.tp this is used to auto check for updates.
    * 
    * @returns {void}
    */
-  connect(pluginId, updateUrl) {
+  connect(options) {
+    const { pluginId, updateUrl } = options;
     this.pluginId = pluginId;
     const parent = this;
 

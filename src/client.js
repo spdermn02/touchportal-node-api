@@ -20,14 +20,14 @@ class TouchPortalClient extends EventEmitter {
   }
 
   /**
-   * Internal helper method for states
+   * Internal helper method for states that automatically manages self.customStates and sends the message to TouchPortal.
    * 
    * @param {Object[Object]} states - Array of object containing id,
    * desc, defaultValue, optionally parentGroup.
    * @param {String} stateType - TouchPortal state type removeState
    * or createState.
    * 
-   * @return {Array<Object>}
+   * @return {void}
    */
   stateHelper(states, stateType) {
     const stateArray = [];
@@ -35,31 +35,24 @@ class TouchPortalClient extends EventEmitter {
       this.logIt('ERROR', `${stateType} has to be vaild object.`)
     }
     states.forEach((state) => {
-      const stateObject = {
-        type: `${stateType}`,
-        id: `${state.id}`
-      };
-      if (`${stateType}` === "createState") {
+      state.type = stateType;
+
+      if (stateType === "createState") {
         if (this.customStates[state.id]) {
           this.logIt('ERROR', `createState: Custom state of ${state.id} already created`);
           throw new Error(`createState: Custom state of ${state.id} already created`);
         };
-        stateObject.desc = state.desc;
-        stateObject.defaultValue = state.defaultValue
-        if (state.parentGroup) {
-          stateObject.parentGroup = `${state.parentGroup}`;
-        };
         this.customStates[state.id] = state.desc;
-      } else if (`${stateType}` === "removeState") {
+      } else if (stateType === "removeState") {
         if (!state.id) {
           this.logIt('ERROR', `removeState: ID parameter is empty`);
           throw new Error(`removeState: ID parameter is empty`);
         }
         delete this.customStates[state.id];
       }
-      stateArray.push(stateObject);
+      stateArray.push(state);
     })
-    return stateArray;
+    this.sendArray(stateArray);
   }
 
   /**
@@ -73,17 +66,15 @@ class TouchPortalClient extends EventEmitter {
    * @return {void}
    */
   createState(id, desc, defaultValue, parentGroup) {
-    const stateArray = this.stateHelper(
-      {
+    this.stateHelper([{
         // @ts-ignore
         "id": id,
         "desc": desc,
         "defaultValue": defaultValue,
         "parentGroup": parentGroup
-      },
+      }],
       "createState"
     )
-    this.sendArray(stateArray)
   }
 
   /**
@@ -96,8 +87,7 @@ class TouchPortalClient extends EventEmitter {
    * @return {void}
    */
   createStateMany(states) {
-    const stateArray = this.stateHelper(states, "createState")
-    this.sendArray(stateArray)
+    this.stateHelper(states, "createState")
   }
 
   /**
@@ -109,8 +99,7 @@ class TouchPortalClient extends EventEmitter {
    */
   removeState(id) {
     // @ts-ignore
-    const stateArray = this.stateHelper({"id": id}, "removeState")
-    this.sendArray(stateArray)
+    this.stateHelper([{"id": id}], "removeState")
   }
 
   /**
@@ -122,8 +111,7 @@ class TouchPortalClient extends EventEmitter {
    * @return {void}
    */
   removeStateMany(states) {
-    const stateArray = this.stateHelper(states, "removeState")
-    this.sendArray(stateArray)
+    this.stateHelper(states, "removeState")
   }
 
   /**

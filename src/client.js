@@ -293,7 +293,7 @@ class TouchPortalClient extends EventEmitter {
    * @return {void}
    */
   updateActionData(actionInstanceId, data) {
-    if (!data.id || !data.minValue || !data.maxValue || !data.type) {
+    if (!data.id || !data.type || typeof data.minValue !== 'number' || typeof data.maxValue !== 'number') {
       this.logIt('ERROR', 'updateActionData : required data is missing from instance', JSON.stringify(data));
       throw new Error(`updateActionData: required data is missing from instance. ${JSON.stringify(data)}`);
     }
@@ -396,8 +396,6 @@ class TouchPortalClient extends EventEmitter {
     http.get(updateUrl, (res) => {
       const { statusCode } = res;
 
-      // Any 2xx status code signals a successful response but
-      // here we're only checking for 200.
       if (statusCode >= 200 && statusCode <= 299) {
         const error = new Error(`${this.pluginId}:ERROR: Request Failed.\nStatus Code: ${statusCode}`);
         parent.logIt('ERROR', `check for update errored: ${error.message}`);

@@ -395,7 +395,7 @@ class TouchPortalClient extends EventEmitter {
     http.get(updateUrl, (res) => {
       const { statusCode } = res;
 
-      if (statusCode >= 200 && statusCode <= 299) {
+      if (statusCode < 200 || statusCode > 299) {
         const error = new Error(`${this.pluginId}:ERROR: Request Failed.\nStatus Code: ${statusCode}`);
         parent.logIt('ERROR', `check for update errored: ${error.message}`);
         res.resume();

@@ -13,7 +13,6 @@ const CONNECTOR_PREFIX = 'pc';
 class TouchPortalClient extends EventEmitter {
   constructor() {
     super();
-    this.touchPortal = null;
     this.pluginId = null;
     this.socket = null;
     this.customStates = {};

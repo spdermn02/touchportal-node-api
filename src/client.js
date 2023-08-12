@@ -51,9 +51,9 @@ class TouchPortalClient extends EventEmitter {
         };
         this.customStates[state.id] = state.desc;
       } else if (`${stateType}` === "removeState") {
-        if (!this.customStates.hasOwnProperty(state.id)) {
-          this.logIt('ERROR', `removeState: Custom state of ${state.id} never created, so cannot remove it`);
-          throw new Error(`removeState: Custom state of ${state.id} never created, so cannot remove it`);
+        if (!state.id) {
+          this.logIt('ERROR', `removeState: ID parameter is empty`);
+          throw new Error(`removeState: ID parameter is empty`);
         }
         delete this.customStates[state.id];
       }
@@ -109,10 +109,6 @@ class TouchPortalClient extends EventEmitter {
    */
   removeState(id) {
     // @ts-ignore
-    if (!id) {
-      this.logIt('ERROR', `removeState: ID parameter is empty`);
-      throw new Error(`removeState: ID parameter is empty`);
-    }
     const stateArray = this.stateHelper({"id": id}, "removeState")
     this.sendArray(stateArray)
   }

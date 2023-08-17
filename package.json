@@ -7,7 +7,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint src tests",
-    "build": "tsc"
+    "build": "tsc",
+    "install": "npm run build"
   },
   "keywords": [
     "TouchPortal"

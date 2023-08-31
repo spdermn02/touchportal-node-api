@@ -375,6 +375,11 @@ class TouchPortalClient extends EventEmitter {
     });
   }
 
+  disconnect() {
+    if (this.socket && !this.socket.destroyed)
+      this.socket.end();
+  }
+
   logIt(...args) {
     const curTime = new Date().toISOString();
     const message = args;

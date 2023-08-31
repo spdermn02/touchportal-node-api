@@ -363,10 +363,12 @@ class TouchPortalClient extends EventEmitter {
     });
 
     this.socket.on('error', (err) => {
+      parent.emit('socketError', err);
       parent.logIt('ERROR', 'Socket Error', err.message);
     });
 
-    this.socket.on('close', () => {
+    this.socket.on('close', (hadError) => {
+      parent.emit('disconnected', hadError);
       parent.logIt('WARN', 'Connection closed');
       if (exitOnClose)
         process.exit(0);

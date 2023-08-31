@@ -305,7 +305,7 @@ class TouchPortalClient extends EventEmitter {
     });
 
     this.socket.on('data', (data) => {
-      const lines = data.toString().split(/(?:\r\n|\r|\n)/);
+      const lines = data.toString().split('\n');
 
       lines.forEach((line) => {
         if (line === '') { return; }

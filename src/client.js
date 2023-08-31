@@ -307,8 +307,9 @@ class TouchPortalClient extends EventEmitter {
     this.socket.on('data', (data) => {
       const lines = data.toString().split('\n');
 
-      lines.forEach((line) => {
-        if (line === '') { return; }
+      for (const line of lines) {
+        if (!line)
+            break;
         const message = JSON.parse(line);
 
         // Handle internal TP Messages here, else pass to user code
@@ -357,7 +358,8 @@ class TouchPortalClient extends EventEmitter {
           default:
             parent.emit('Message', message);
         }
-      });
+      }
+
     });
     this.socket.on('error', () => {
       parent.logIt('ERROR', 'Socket Connection closed');

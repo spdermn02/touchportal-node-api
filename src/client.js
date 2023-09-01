@@ -11,12 +11,27 @@ const SOCKET_PORT = 12136;
 const CONNECTOR_PREFIX = 'pc';
 
 class TouchPortalClient extends EventEmitter {
-  constructor() {
-    super();
+  /**
+   * Creates a new `TouchPortalClient` instance.
+   * @param {Object} [options] Optional runtime settings for TouchPortalClient and EventEmitter.
+   * @param {(function(string, string | any, ...any?):void) | null} [options.logCallback]
+   *  - Log callback function called by `logIt()` method instead of `console.log()`, or `null` to disable logging.
+   *
+   *  Arguments passed to callback:
+   *     * `level: string` - Logging level string, eg. "DEBUG"/"INFO"/"WARN"/"ERROR".
+   *     * `message?: string | any` - The log message or some other value type to log, possibly `undefined`.
+   *     * `...args: any[]` - Possible further argument(s) passed to the callback if logIt() was called with > 2 arguments.
+   * @constructs {TouchPortalClient}
+   */
+  constructor(options = {}) {
     this.touchPortal = null;
     this.pluginId = null;
     this.socket = null;
     this.customStates = {};
+    if (options && (options.logCallback === null || typeof options.logCallback == 'function'))
+        this.logCallback = options.logCallback;
+    else
+        this.logCallback = undefined;
   }
 
   createState(id, desc, defaultValue, parentGroup) {
@@ -383,10 +398,16 @@ class TouchPortalClient extends EventEmitter {
   }
 
   logIt(...args) {
-    const curTime = new Date().toISOString();
-    const message = args;
-    const type = message.shift();
-    console.log(curTime, ':', this.pluginId, `:${type}:`, ...message);
+    // must be a strict compare
+    if (this.logCallback === undefined) {
+      const curTime = new Date().toISOString();
+      const message = args;
+      const type = message.shift();
+      console.log(curTime, ':', this.pluginId, `:${type}:`, ...message);
+    }
+    else if (this.logCallback) {
+      this.logCallback(args.shift(), args.shift(), ...args);
+    }
   }
 }
 

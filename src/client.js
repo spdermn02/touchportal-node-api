@@ -14,6 +14,7 @@ class TouchPortalClient extends EventEmitter {
   /**
    * Creates a new `TouchPortalClient` instance.
    * @param {Object} [options] Optional runtime settings for TouchPortalClient and EventEmitter.
+   * @param {boolean} [options.captureRejections] - Passed through to EventEmitter
    * @param {(function(string, string | any, ...any?):void) | null} [options.logCallback]
    *  - Log callback function called by `logIt()` method instead of `console.log()`, or `null` to disable logging.
    *
@@ -24,6 +25,8 @@ class TouchPortalClient extends EventEmitter {
    * @constructs {TouchPortalClient}
    */
   constructor(options = {}) {
+    //@ts-expect-error   TS doesn't seem to have proper typing for Node's EventEmitter c'tor which accepts an options object
+    super(options);
     this.touchPortal = null;
     this.pluginId = null;
     this.socket = null;

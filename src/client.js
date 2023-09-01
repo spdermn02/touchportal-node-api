@@ -314,8 +314,8 @@ class TouchPortalClient extends EventEmitter {
     if (pluginId)
       this.pluginId = pluginId;
     if (!this.pluginId) {
-      this.logIt('ERROR', "Plugin ID is missing or empty.");
-      // throw error?
+      this.logIt('ERROR', "connect: Plugin ID is missing or empty.");
+      throw new Error('connect: Plugin ID is missing or empty.');
     }
 
     if (typeof exitOnClose != 'boolean')

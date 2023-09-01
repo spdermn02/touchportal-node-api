@@ -14,9 +14,12 @@ class TouchPortalClient extends EventEmitter {
   /**
    * Creates a new `TouchPortalClient` instance.
    * @param {Object} [options] Optional runtime settings for TouchPortalClient and EventEmitter.
-   * @param {boolean} [options.captureRejections] - Passed through to EventEmitter
+   * @param {boolean} [options.captureRejections]
+   *   Passed through to {@linkcode https://nodejs.org/docs/latest/api/events.html#class-eventemitter EventEmitter} constructor.
+   * @param {string} [options.pluginId] ID of the plugin using this client, matching the definition in `entry.tp`.
+   *   Also used in logging output. If omitted here then must be specified in `connect()` method options instead.
    * @param {(function(string, string | any, ...any?):void) | null} [options.logCallback]
-   *  - Log callback function called by `logIt()` method instead of `console.log()`, or `null` to disable logging.
+   *   Log callback function called by `logIt()` method instead of `console.log()`, or `null` to disable logging.
    *
    *  Arguments passed to callback:
    *     * `level: string` - Logging level string, eg. "DEBUG"/"INFO"/"WARN"/"ERROR".
@@ -28,7 +31,7 @@ class TouchPortalClient extends EventEmitter {
     //@ts-expect-error   TS doesn't seem to have proper typing for Node's EventEmitter c'tor which accepts an options object
     super(options);
     this.touchPortal = null;
-    this.pluginId = null;
+    this.pluginId = options?.pluginId;
     this.socket = null;
     this.customStates = {};
     if (options && (options.logCallback === null || typeof options.logCallback == 'function'))
@@ -307,8 +310,13 @@ class TouchPortalClient extends EventEmitter {
 
   connect(options = {}) {
     let { pluginId, updateUrl, exitOnClose } = options;
-    this.pluginId = pluginId;
-    const parent = this;
+
+    if (pluginId)
+      this.pluginId = pluginId;
+    if (!this.pluginId) {
+      this.logIt('ERROR', "Plugin ID is missing or empty.");
+      // throw error?
+    }
 
     if (typeof exitOnClose != 'boolean')
       exitOnClose = true;
@@ -317,6 +325,8 @@ class TouchPortalClient extends EventEmitter {
       this.updateUrl = updateUrl;
       this.checkForUpdate();
     }
+
+    const parent = this;
 
     this.socket = new net.Socket();
     this.socket.setEncoding('utf-8');

@@ -413,10 +413,7 @@ class TouchPortalClient extends EventEmitter {
   logIt(...args) {
     // must be a strict compare
     if (this.logCallback === undefined) {
-      const curTime = new Date().toISOString();
-      const message = args;
-      const type = message.shift();
-      console.log(curTime, ':', this.pluginId, `:${type}:`, ...message);
+      console.log(`${new Date().toISOString()} : ${this.pluginId} :${args.shift()}:`, ...args);
     }
     else if (this.logCallback) {
       this.logCallback(args.shift(), args.shift(), ...args);

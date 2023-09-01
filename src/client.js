@@ -28,7 +28,7 @@ class TouchPortalClient extends EventEmitter {
    * @constructs {TouchPortalClient}
    */
   constructor(options = {}) {
-    //@ts-expect-error   TS doesn't seem to have proper typing for Node's EventEmitter c'tor which accepts an options object
+    //@ts-ignore   TS doesn't seem to have proper typing for Node's EventEmitter c'tor which accepts an options object
     super(options);
     this.touchPortal = null;
     this.pluginId = options?.pluginId;

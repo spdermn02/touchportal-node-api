@@ -11,12 +11,33 @@ const SOCKET_PORT = 12136;
 const CONNECTOR_PREFIX = 'pc';
 
 class TouchPortalClient extends EventEmitter {
-  constructor() {
-    super();
+  /**
+   * Creates a new `TouchPortalClient` instance.
+   * @param {Object} [options] Optional runtime settings for TouchPortalClient and EventEmitter.
+   * @param {boolean} [options.captureRejections]
+   *   Passed through to {@linkcode https://nodejs.org/docs/latest/api/events.html#class-eventemitter EventEmitter} constructor.
+   * @param {string} [options.pluginId] ID of the plugin using this client, matching the definition in `entry.tp`.
+   *   Also used in logging output. If omitted here then must be specified in `connect()` method options instead.
+   * @param {(function(string, string | any, ...any?):void) | null} [options.logCallback]
+   *   Log callback function called by `logIt()` method instead of `console.log()`, or `null` to disable logging.
+   *
+   *  Arguments passed to callback:
+   *     * `level: string` - Logging level string, eg. "DEBUG"/"INFO"/"WARN"/"ERROR".
+   *     * `message?: string | any` - The log message or some other value type to log, possibly `undefined`.
+   *     * `...args: any[]` - Possible further argument(s) passed to the callback if logIt() was called with > 2 arguments.
+   * @constructs {TouchPortalClient}
+   */
+  constructor(options = {}) {
+    //@ts-ignore   TS doesn't seem to have proper typing for Node's EventEmitter c'tor which accepts an options object
+    super(options);
     this.touchPortal = null;
-    this.pluginId = null;
+    this.pluginId = options?.pluginId;
     this.socket = null;
     this.customStates = {};
+    if (options && (options.logCallback === null || typeof options.logCallback == 'function'))
+        this.logCallback = options.logCallback;
+    else
+        this.logCallback = undefined;
   }
 
   createState(id, desc, defaultValue, parentGroup) {
@@ -289,8 +310,13 @@ class TouchPortalClient extends EventEmitter {
 
   connect(options = {}) {
     let { pluginId, updateUrl, exitOnClose } = options;
-    this.pluginId = pluginId;
-    const parent = this;
+
+    if (pluginId)
+      this.pluginId = pluginId;
+    if (!this.pluginId) {
+      this.logIt('ERROR', "connect: Plugin ID is missing or empty.");
+      throw new Error('connect: Plugin ID is missing or empty.');
+    }
 
     if (typeof exitOnClose != 'boolean')
       exitOnClose = true;
@@ -299,6 +325,8 @@ class TouchPortalClient extends EventEmitter {
       this.updateUrl = updateUrl;
       this.checkForUpdate();
     }
+
+    const parent = this;
 
     this.socket = new net.Socket();
     this.socket.setEncoding('utf-8');
@@ -383,10 +411,13 @@ class TouchPortalClient extends EventEmitter {
   }
 
   logIt(...args) {
-    const curTime = new Date().toISOString();
-    const message = args;
-    const type = message.shift();
-    console.log(curTime, ':', this.pluginId, `:${type}:`, ...message);
+    // must be a strict compare
+    if (this.logCallback === undefined) {
+      console.log(`${new Date().toISOString()} : ${this.pluginId} :${args.shift()}:`, ...args);
+    }
+    else if (this.logCallback) {
+      this.logCallback(args.shift(), args.shift(), ...args);
+    }
   }
 }
 

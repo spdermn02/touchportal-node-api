@@ -329,19 +329,43 @@ class TouchPortalClient extends EventEmitter {
     const parent = this;
 
     this.socket = new net.Socket();
-    this.socket.setEncoding('utf-8');
+    this.socket.setEncoding('utf8');
     this.socket.connect(SOCKET_PORT, SOCKET_IP, () => {
       parent.emit('connected');
       parent.pair();
     });
 
-    this.socket.on('data', (data) => {
-      const lines = data.toString().split('\n');
+    // Set up a buffer to potentially store partial incoming messages.
+    let lineBuffer = "";
+    this.socket.on('data',
+      /** @param {string} data is a String type since we set an encoding on the socket (VSCode thinks it's a Buffer). */
+      (data) =>
+    {
+      // Track current newline search position in data string, starting from the beginning.
+      let pos = 0;
+      while (pos < data.length) {
+        // Find the next newline character starting from our last search position in the data string.
+        const n = data.indexOf('\n', pos);
+        // If no newline was found then this is a partial message -- buffer it for later and wait for more data.
+        if (n < 0) {
+          lineBuffer += data.substring(pos);
+          break;
+        }
 
-      for (const line of lines) {
-        if (!line)
-            break;
-        const message = JSON.parse(line);
+        // Prepend any buffered data to current line. Buffer may be empty, but is it worth checking for that?
+        const line = lineBuffer + data.substring(pos, n);
+        pos = n + 1;  // advance next newline search position
+        lineBuffer = "";  // we're done with the line buffer
+
+        // Try to decode the message.
+        let message;
+        try {
+          message = JSON.parse(line);
+        }
+        catch (ex) {
+          parent.logIt('ERROR', 'JSON exception while parsing line:', line, '\n', ex);
+          continue;
+        }
 
         // Handle internal TP Messages here, else pass to user code
         switch (message.type) {

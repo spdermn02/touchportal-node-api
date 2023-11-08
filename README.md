@@ -18,7 +18,7 @@ Build a plugin to Touch Portal with Node.JS utlizing this easy to use library.  
 *NOTE*: Make sure your Touch Portal is up-to-date to use the latest features.
 
 ## ChangeLog
-see [Changelog.md](Changelog.md)
+see [CHANGELOG.md](CHANGELOG.md)
 
 ## Usage 
 ### Install using npm

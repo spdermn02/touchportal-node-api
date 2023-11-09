@@ -11,11 +11,32 @@ const SOCKET_PORT = 12136;
 const CONNECTOR_PREFIX = 'pc';
 
 class TouchPortalClient extends EventEmitter {
-  constructor() {
-    super();
-    this.pluginId = null;
+  /**
+   * Creates a new `TouchPortalClient` instance.
+   * @param {Object} [options] Optional runtime settings for TouchPortalClient and EventEmitter.
+   * @param {boolean} [options.captureRejections]
+   *   Passed through to {@linkcode https://nodejs.org/docs/latest/api/events.html#class-eventemitter EventEmitter} constructor.
+   * @param {string} [options.pluginId] ID of the plugin using this client, matching the definition in `entry.tp`.
+   *   Also used in logging output. If omitted here then must be specified in `connect()` method options instead.
+   * @param {(function(string, string | any, ...any?):void) | null} [options.logCallback]
+   *   Log callback function called by `logIt()` method instead of `console.log()`, or `null` to disable logging.
+   *
+   *  Arguments passed to callback:
+   *     * `level: string` - Logging level string, eg. "DEBUG"/"INFO"/"WARN"/"ERROR".
+   *     * `message?: string | any` - The log message or some other value type to log, possibly `undefined`.
+   *     * `...args: any[]` - Possible further argument(s) passed to the callback if logIt() was called with > 2 arguments.
+   * @constructs {TouchPortalClient}
+   */
+  constructor(options = {}) {
+    //@ts-ignore   TS doesn't seem to have proper typing for Node's EventEmitter c'tor which accepts an options object
+    super(options);
+    this.pluginId = options?.pluginId;
     this.socket = null;
     this.customStates = {};
+    if (options && (options.logCallback === null || typeof options.logCallback == 'function'))
+        this.logCallback = options.logCallback;
+    else
+        this.logCallback = undefined;
   }
 
   /**
@@ -437,28 +458,64 @@ class TouchPortalClient extends EventEmitter {
    * 
    * @returns {void}
    */
-  connect(options) {
-    const { pluginId, updateUrl } = options;
-    this.pluginId = pluginId;
-    const parent = this;
+  connect(options = {}) {
+    let { pluginId, updateUrl, exitOnClose } = options;
 
-    if (updateUrl) {
-      this.checkForUpdate(updateUrl);
+    if (pluginId)
+      this.pluginId = pluginId;
+    if (!this.pluginId) {
+      this.logIt('ERROR', "connect: Plugin ID is missing or empty.");
+      throw new Error('connect: Plugin ID is missing or empty.');
     }
 
+    if (typeof exitOnClose != 'boolean')
+      exitOnClose = true;
+
+    if (updateUrl) {
+      this.updateUrl = updateUrl;
+      this.checkForUpdate();
+    }
+
+    const parent = this;
+
     this.socket = new net.Socket();
-    this.socket.setEncoding('utf-8');
+    this.socket.setEncoding('utf8');
     this.socket.connect(SOCKET_PORT, SOCKET_IP, () => {
       parent.emit('connected');
       parent.pair();
     });
 
-    this.socket.on('data', (data) => {
-      const lines = data.toString().split(/(?:\r\n|\r|\n)/);
+    // Set up a buffer to potentially store partial incoming messages.
+    let lineBuffer = "";
+    this.socket.on('data',
+      /** @param {string} data is a String type since we set an encoding on the socket (VSCode thinks it's a Buffer). */
+      (data) =>
+    {
+      // Track current newline search position in data string, starting from the beginning.
+      let pos = 0;
+      while (pos < data.length) {
+        // Find the next newline character starting from our last search position in the data string.
+        const n = data.indexOf('\n', pos);
+        // If no newline was found then this is a partial message -- buffer it for later and wait for more data.
+        if (n < 0) {
+          lineBuffer += data.substring(pos);
+          break;
+        }
 
-      lines.forEach((line) => {
-        if (line === '') { return; }
-        const message = JSON.parse(line);
+        // Prepend any buffered data to current line. Buffer may be empty, but is it worth checking for that?
+        const line = lineBuffer + data.substring(pos, n);
+        pos = n + 1;  // advance next newline search position
+        lineBuffer = "";  // we're done with the line buffer
+
+        // Try to decode the message.
+        let message;
+        try {
+          message = JSON.parse(line);
+        }
+        catch (ex) {
+          parent.logIt('ERROR', 'JSON exception while parsing line:', line, '\n', ex);
+          continue;
+        }
 
         // Handle internal TP Messages here, else pass to user code
         switch (message.type) {
@@ -466,7 +523,6 @@ class TouchPortalClient extends EventEmitter {
             if (message.pluginId === parent.pluginId) {
               parent.emit('Close', message);
               parent.socket.end();
-              process.exit(0);
             }
             break;
           case 'info':
@@ -506,23 +562,36 @@ class TouchPortalClient extends EventEmitter {
           default:
             parent.emit('Message', message);
         }
-      });
-    });
-    this.socket.on('error', () => {
-      parent.logIt('ERROR', 'Socket Connection closed');
-      process.exit(0);
+      }
+
     });
 
-    this.socket.on('close', () => {
+    this.socket.on('error', (err) => {
+      parent.emit('socketError', err);
+      parent.logIt('ERROR', 'Socket Error', err.message);
+    });
+
+    this.socket.on('close', (hadError) => {
+      parent.emit('disconnected', hadError);
       parent.logIt('WARN', 'Connection closed');
+      if (exitOnClose)
+        process.exit(0);
     });
   }
 
+  disconnect() {
+    if (this.socket && !this.socket.destroyed)
+      this.socket.end();
+  }
+
   logIt(...args) {
-    const curTime = new Date().toISOString();
-    const message = args;
-    const type = message.shift();
-    console.log(curTime, ':', this.pluginId, `:${type}:`, ...message);
+    // must be a strict compare
+    if (this.logCallback === undefined) {
+      console.log(`${new Date().toISOString()} : ${this.pluginId} :${args.shift()}:`, ...args);
+    }
+    else if (this.logCallback) {
+      this.logCallback(args.shift(), args.shift(), ...args);
+    }
   }
 }
 

@@ -7,7 +7,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint src tests",
-    "build": "tsc"
+    "build": "tsc",
+    "install": "npm run build"
   },
   "keywords": [
     "TouchPortal"
@@ -22,7 +23,7 @@
   "devDependencies": {
     "eslint": "^8.21.0",
     "eslint-config-airbnb-base": "^15.0.0",
-    "eslint-plugin-import": "^2.26.0",
+    "eslint-plugin-import": "^2.28.1",
     "typescript": "^4.7.4"
   }
 }

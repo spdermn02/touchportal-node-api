@@ -471,10 +471,8 @@ class TouchPortalClient extends EventEmitter {
     if (typeof exitOnClose != 'boolean')
       exitOnClose = true;
 
-    if (updateUrl) {
-      this.updateUrl = updateUrl;
-      this.checkForUpdate();
-    }
+    if (updateUrl)
+      this.checkForUpdate(updateUrl);
 
     const parent = this;
 

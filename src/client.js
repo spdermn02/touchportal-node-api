@@ -1,6 +1,6 @@
 const EventEmitter = require('events');
 const net = require('net');
-const https = require('https');
+const http = require('https');
 const compareVersions = require('compare-versions');
 const { requireFromAppRoot } = require('require-from-app-root');
 
@@ -272,7 +272,7 @@ class TouchPortalClient extends EventEmitter {
   checkForUpdate() {
     const parent = this;
     const updateUrl = `https://api.github.com/repos/${parent.githubUser}/${parent.githubRepo}/releases`;
-    https.get(updateUrl, {headers: {'User-Agent': this.pluginId }
+    http.get(updateUrl, {headers: {'User-Agent': this.pluginId }
         }, (res) => {
         const { statusCode } = res;
         // Any 2xx status code signals a successful response but

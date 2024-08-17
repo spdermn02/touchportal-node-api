@@ -269,9 +269,9 @@ class TouchPortalClient extends EventEmitter {
     this.send(pairMsg);
   }
 
-  checkForUpdate() {
+  checkForUpdate(githubUser, githubRepo, includePrerelease) {
     const parent = this;
-    const updateUrl = `https://api.github.com/repos/${parent.githubUser}/${parent.githubRepo}/releases`;
+    const updateUrl = `https://api.github.com/repos/${githubUser}/${githubRepo}/releases`;
     http.get(updateUrl, {headers: {'User-Agent': this.pluginId }
         }, (res) => {
         const { statusCode } = res;
@@ -295,7 +295,7 @@ class TouchPortalClient extends EventEmitter {
                 const jsonData = JSON.parse(updateData);
                 for (const release of jsonData) {
                   const releaseVersion = release.tag_name.replace('v', '');      
-                  if (this.includePrerelease || !release.prerelease) {
+                  if (includePrerelease || !release.prerelease) {
                       if (compareVersions(releaseVersion, pluginVersion) > 0) {
                           parent.emit('Update', pluginVersion, releaseVersion);
                           return;
@@ -315,7 +315,7 @@ class TouchPortalClient extends EventEmitter {
   }
 
   connect(options = {}) {
-    let { pluginId, updateCheck, exitOnClose } = options;
+    let { pluginId, exitOnClose } = options;
 
     if (pluginId)
       this.pluginId = pluginId;
@@ -326,14 +326,6 @@ class TouchPortalClient extends EventEmitter {
 
     if (typeof exitOnClose != 'boolean')
       exitOnClose = true;
-
-    if (updateCheck) {
-      this.githubRepo = updateCheck.githubRepo;
-      this.githubUser = updateCheck.githubUser;
-      this.includePrerelease = updateCheck.includePrerelease
-      this.checkForUpdate();
-    }
-
     const parent = this;
 
     this.socket = new net.Socket();

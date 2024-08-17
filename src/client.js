@@ -1,6 +1,6 @@
 const EventEmitter = require('events');
 const net = require('net');
-const http = require('https');
+const https = require('https');
 const compareVersions = require('compare-versions');
 const { requireFromAppRoot } = require('require-from-app-root');
 
@@ -271,45 +271,51 @@ class TouchPortalClient extends EventEmitter {
 
   checkForUpdate() {
     const parent = this;
-    http.get(this.updateUrl, (res) => {
-      const { statusCode } = res;
-
-      // Any 2xx status code signals a successful response but
-      // here we're only checking for 200.
-      if (statusCode !== 200) {
-        const error = new Error(`${this.pluginId}:ERROR: Request Failed.\nStatus Code: ${statusCode}`);
-        parent.logIt('ERROR', `check for update errored: ${error.message}`);
-        res.resume();
-        return;
-      }
-
-      res.setEncoding('utf8');
-      let updateData = '';
-      res.on('data', (chunk) => {
-        updateData += chunk;
-      });
-      res.on('end', () => {
-        try {
-          const jsonData = JSON.parse(updateData);
-          if (jsonData.version !== null) {
-            if (compareVersions(jsonData.version, pluginVersion) > 0) {
-              parent.emit('Update', pluginVersion, jsonData.version);
-            }
-          }
-        } catch (e) {
-          parent.logIt('ERROR: Check for Update error=', e.message);
+    const updateUrl = `https://api.github.com/repos/${parent.githubUser}/${parent.githubRepo}/releases`;
+    https.get(updateUrl, {headers: {'User-Agent': this.pluginId }
+        }, (res) => {
+        const { statusCode } = res;
+        // Any 2xx status code signals a successful response but
+        // here we're only checking for 200.
+        if (statusCode !== 200) {
+            const error = new Error(`${this.pluginId}:ERROR: Request Failed.\nStatus Code: ${statusCode}`);
+            parent.logIt('ERROR', `check for update errored: ${error.message}`);
+            res.resume();
+            return;
         }
-      });
-      res.on('error', (error) => {
-        parent.logIt('ERROR', 'error received attempting to check for update:', error);
-      });
+        
+        res.setEncoding('utf8');
+        let updateData = '';
+        res.on('data', (chunk) => {
+            updateData += chunk;
+        });
+
+        res.on('end', () => {
+            try {
+                const jsonData = JSON.parse(updateData);
+                for (const release of jsonData) {
+                  const releaseVersion = release.tag_name.replace('v', '');      
+                  if (this.includePrerelease || !release.prerelease) {
+                      if (compareVersions(releaseVersion, pluginVersion) > 0) {
+                          parent.emit('Update', pluginVersion, releaseVersion);
+                          return;
+                      }
+                  }
+              }
+            } catch (e) {
+                parent.logIt('ERROR: Check for Update error=', e.message);
+            }
+        });
+        res.on('error', (error) => {
+            parent.logIt('ERROR', 'error received attempting to check for update:', error);
+        });
     }).on('error', (error) => {
-      parent.logIt('ERROR', 'error received attempting to check for update:', error);
+        parent.logIt('ERROR', 'error received attempting to check for update:', error);
     });
   }
 
   connect(options = {}) {
-    let { pluginId, updateUrl, exitOnClose } = options;
+    let { pluginId, updateCheck, exitOnClose } = options;
 
     if (pluginId)
       this.pluginId = pluginId;
@@ -321,8 +327,10 @@ class TouchPortalClient extends EventEmitter {
     if (typeof exitOnClose != 'boolean')
       exitOnClose = true;
 
-    if (updateUrl) {
-      this.updateUrl = updateUrl;
+    if (updateCheck) {
+      this.githubRepo = updateCheck.githubRepo;
+      this.githubUser = updateCheck.githubUser;
+      this.includePrerelease = updateCheck.includePrerelease
       this.checkForUpdate();
     }
 

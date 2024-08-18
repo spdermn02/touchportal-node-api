@@ -1,5 +1,17 @@
 # Touch Portal Node API - Change Log
 
+## v4.0.0
+  ### New Features: 
+  - Developers may now initiate a plugin update check at any time using the `checkForUpdate` function from TPClient
+    - Allows option to include pre-releases from github allowing users to decide to download alpha/beta versions ([#44])
+
+  ### Changes
+  - `TPClient.Connect` no longer accepts `updateUrl` to initate a github update check upon plugin connect.
+  - `TPClient.checkForUpdate` now takes the args `githubUser`, `githubRepo` and `includePrerelease`
+    - Example: `TPClient.checkForUpdate("spdermn02", "TouchPortal_Discord_Plugin", includePrerelease)`
+
+[#44]: https://github.com/spdermn02/touchportal-node-api/pull/44
+
 ## v3.3.0
   ### New Features:
   - Allow plugin "stateful" disconnection/exit ([#36]):
@@ -37,7 +49,6 @@
 [#39]: https://github.com/spdermn02/touchportal-node-api/pull/39
 [#40]: https://github.com/spdermn02/touchportal-node-api/pull/40
 [#41]: https://github.com/spdermn02/touchportal-node-api/pull/41
-
 ---
 ## v3.2.1 - ESLint implementation and Typescript support
  ### Updates

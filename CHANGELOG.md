@@ -6,8 +6,8 @@
     - Allows option to include pre-releases from github allowing users to decide to download alpha/beta versions ([#44])
 
   ### Changes
-   - `TPClient.Connect` no longer accepts `updateUrl` to initate a github update check upon plugin connect.
-   - `TPClient.checkForUpdate` now takes the args `githubUser`, `githubRepo` and `includePrerelease`
+  - `TPClient.Connect` no longer accepts `updateUrl` to initate a github update check upon plugin connect.
+  - `TPClient.checkForUpdate` now takes the args `githubUser`, `githubRepo` and `includePrerelease`
     - Example: `TPClient.checkForUpdate("spdermn02", "TouchPortal_Discord_Plugin", includePrerelease)`
 
 [#44]: https://github.com/spdermn02/touchportal-node-api/pull/44

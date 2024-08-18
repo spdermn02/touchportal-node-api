@@ -28,16 +28,17 @@ class TouchPortalClient extends EventEmitter {
    * @constructs {TouchPortalClient}
    */
   constructor(options = {}) {
-    //@ts-ignore   TS doesn't seem to have proper typing for Node's EventEmitter c'tor which accepts an options object
+    // @ts-ignore   TS doesn't seem to have proper typing for Node's EventEmitter c'tor which accepts an options object
     super(options);
     this.touchPortal = null;
     this.pluginId = options?.pluginId;
     this.socket = null;
     this.customStates = {};
-    if (options && (options.logCallback === null || typeof options.logCallback == 'function'))
-        this.logCallback = options.logCallback;
-    else
-        this.logCallback = undefined;
+    if (options && (options.logCallback === null || typeof options.logCallback === 'function')) {
+      this.logCallback = options.logCallback;
+    } else {
+      this.logCallback = undefined;
+    }
   }
 
   createState(id, desc, defaultValue, parentGroup) {
@@ -89,8 +90,8 @@ class TouchPortalClient extends EventEmitter {
 
   removeState(id) {
     if (!id) {
-      this.logIt('ERROR', `removeState: ID parameter is empty`);
-      throw new Error(`removeState: ID parameter is empty`);
+      this.logIt('ERROR', 'removeState: ID parameter is empty');
+      throw new Error('removeState: ID parameter is empty');
     }
     delete this.customStates[id];
     this.send({
@@ -106,7 +107,7 @@ class TouchPortalClient extends EventEmitter {
     }
     if (!Array.isArray(value)) {
       this.logIt('ERROR', 'choiceUpdate : value parameter must be an array');
-      throw new Error( 'choiceUpdate: value parameter must be an array');
+      throw new Error('choiceUpdate: value parameter must be an array');
     }
     this.send({ type: 'choiceUpdate', id, value });
   }
@@ -311,15 +312,17 @@ class TouchPortalClient extends EventEmitter {
   connect(options = {}) {
     let { pluginId, updateUrl, exitOnClose } = options;
 
-    if (pluginId)
+    if (pluginId) {
       this.pluginId = pluginId;
+    }
     if (!this.pluginId) {
-      this.logIt('ERROR', "connect: Plugin ID is missing or empty.");
+      this.logIt('ERROR', 'connect: Plugin ID is missing or empty.');
       throw new Error('connect: Plugin ID is missing or empty.');
     }
 
-    if (typeof exitOnClose != 'boolean')
+    if (typeof exitOnClose !== 'boolean') {
       exitOnClose = true;
+    }
 
     if (updateUrl) {
       this.updateUrl = updateUrl;
@@ -336,85 +339,84 @@ class TouchPortalClient extends EventEmitter {
     });
 
     // Set up a buffer to potentially store partial incoming messages.
-    let lineBuffer = "";
-    this.socket.on('data',
+    let lineBuffer = '';
+    this.socket.on(
+      'data',
       /** @param {string} data is a String type since we set an encoding on the socket (VSCode thinks it's a Buffer). */
-      (data) =>
-    {
-      // Track current newline search position in data string, starting from the beginning.
-      let pos = 0;
-      while (pos < data.length) {
-        // Find the next newline character starting from our last search position in the data string.
-        const n = data.indexOf('\n', pos);
-        // If no newline was found then this is a partial message -- buffer it for later and wait for more data.
-        if (n < 0) {
-          lineBuffer += data.substring(pos);
-          break;
-        }
+      (data) => {
+        // Track current newline search position in data string, starting from the beginning.
+        let pos = 0;
+        while (pos < data.length) {
+          // Find the next newline character starting from our last search position in the data string.
+          const n = data.indexOf('\n', pos);
+          // If no newline was found then this is a partial message -- buffer it for later and wait for more data.
+          if (n < 0) {
+            lineBuffer += data.substring(pos);
+            break;
+          }
 
-        // Prepend any buffered data to current line. Buffer may be empty, but is it worth checking for that?
-        const line = lineBuffer + data.substring(pos, n);
-        pos = n + 1;  // advance next newline search position
-        lineBuffer = "";  // we're done with the line buffer
+          // Prepend any buffered data to current line. Buffer may be empty, but is it worth checking for that?
+          const line = lineBuffer + data.substring(pos, n);
+          pos = n + 1; // advance next newline search position
+          lineBuffer = ''; // we're done with the line buffer
 
-        // Try to decode the message.
-        let message;
-        try {
-          message = JSON.parse(line);
-        }
-        catch (ex) {
-          parent.logIt('ERROR', 'JSON exception while parsing line:', line, '\n', ex);
-          continue;
-        }
+          // Try to decode the message.
+          let message;
+          try {
+            message = JSON.parse(line);
+          } catch (ex) {
+            parent.logIt('ERROR', 'JSON exception while parsing line:', line, '\n', ex);
+            continue;
+          }
 
-        // Handle internal TP Messages here, else pass to user code
-        switch (message.type) {
-          case 'closePlugin':
-            if (message.pluginId === parent.pluginId) {
-              parent.emit('Close', message);
-              parent.socket.end();
-            }
-            break;
-          case 'info':
-            parent.emit('Info', message);
-            if (message.settings) {
-              parent.emit('Settings', message.settings);
-            }
-            break;
-          case 'notificationOptionClicked':
-            parent.emit('NotificationClicked', message);
-            break;
-          case 'settings':
-            // values is the key that is the same as how info contains settings key, for direct settings saving
-            parent.emit('Settings', message.values);
-            break;
-          case 'listChange':
-            parent.emit('ListChange', message);
-            break;
-          case 'action':
-            parent.emit('Action', message, null);
-            break;
-          case 'broadcast':
-            parent.emit('Broadcast', message);
-            break;
-          case 'shortConnectorIdNotification':
-            parent.emit('ConnectorShortIdNotification', message);
-            break;
-          case 'connectorChange':
-            parent.emit('ConnectorChange', message);
-            break;
-          case 'up':
-            parent.emit('Action', message, false);
-            break;
-          case 'down':
-            parent.emit('Action', message, true);
-            break;
-          default:
-            parent.emit('Message', message);
+          // Handle internal TP Messages here, else pass to user code
+          switch (message.type) {
+            case 'closePlugin':
+              if (message.pluginId === parent.pluginId) {
+                parent.emit('Close', message);
+                parent.socket.end();
+              }
+              break;
+            case 'info':
+              parent.emit('Info', message);
+              if (message.settings) {
+                parent.emit('Settings', message.settings);
+              }
+              break;
+            case 'notificationOptionClicked':
+              parent.emit('NotificationClicked', message);
+              break;
+            case 'settings':
+              // values is the key that is the same as how info contains settings key, for direct settings saving
+              parent.emit('Settings', message.values);
+              break;
+            case 'listChange':
+              parent.emit('ListChange', message);
+              break;
+            case 'action':
+              parent.emit('Action', message, null);
+              break;
+            case 'broadcast':
+              parent.emit('Broadcast', message);
+              break;
+            case 'shortConnectorIdNotification':
+              parent.emit('ConnectorShortIdNotification', message);
+              break;
+            case 'connectorChange':
+              parent.emit('ConnectorChange', message);
+              break;
+            case 'up':
+              parent.emit('Action', message, false);
+              break;
+            case 'down':
+              parent.emit('Action', message, true);
+              break;
+            default:
+              parent.emit('Message', message);
+          }
         }
       }
-
-    });
+    );
 
     this.socket.on('error', (err) => {
       parent.emit('socketError', err);
@@ -424,22 +426,23 @@ class TouchPortalClient extends EventEmitter {
     this.socket.on('close', (hadError) => {
       parent.emit('disconnected', hadError);
       parent.logIt('WARN', 'Connection closed');
-      if (exitOnClose)
+      if (exitOnClose) {
         process.exit(0);
+      }
     });
   }
 
   disconnect() {
-    if (this.socket && !this.socket.destroyed)
+    if (this.socket && !this.socket.destroyed) {
       this.socket.end();
+    }
   }
 
   logIt(...args) {
     // must be a strict compare
     if (this.logCallback === undefined) {
       console.log(`${new Date().toISOString()} : ${this.pluginId} :${args.shift()}:`, ...args);
-    }
-    else if (this.logCallback) {
+    } else if (this.logCallback) {
       this.logCallback(args.shift(), args.shift(), ...args);
     }
   }

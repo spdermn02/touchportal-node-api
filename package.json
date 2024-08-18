@@ -1,6 +1,6 @@
 {
   "name": "touchportal-api",
-  "version": "3.3.0",
+  "version": "4.0.0",
   "description": "TouchPortal API in Node.JS",
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",

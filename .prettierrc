@@ -1,0 +1,16 @@
+{
+  "semi": true,
+  "singleQuote": true,
+  "trailingComma": "none",
+  "bracketSameLine": true,
+  "htmlWhitespaceSensitivity": "ignore",
+  "endOfLine": "auto",
+  "overrides": [
+    {
+      "files": "*.ts",
+      "options": {
+        "printWidth": 120
+      }
+    }
+  ]
+}

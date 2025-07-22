@@ -6,6 +6,7 @@ export * from './choices/update-specifc-choice-list-request';
 export * from './connectors/update-connector-data-request';
 export * from './events/trigger-event-request';
 export * from './notifications/create-notification-request';
+export * from './pair/pair-request';
 export * from './settings/update-setting-request';
 export * from './states/create-state-request';
 export * from './states/update-state-list-request';

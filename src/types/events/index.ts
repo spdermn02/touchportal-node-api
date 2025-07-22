@@ -1,4 +1,6 @@
 export * from './event-data';
+export * from './device-info';
+export * from './info-event';
 export * from './execute-action-event';
 export * from './action-hold-info-event';
 export * from './connector-change-event';

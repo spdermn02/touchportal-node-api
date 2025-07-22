@@ -14,7 +14,9 @@ import {
   UpdateStateRequest,
   ActionData,
   UpdateActionDataRequest,
-  UpdateConnectorDataRequest
+  UpdateConnectorDataRequest,
+  PairRequest,
+  ConnectorData
 } from './types';
 
 const SOCKET_IP = '127.0.0.1';
@@ -53,8 +55,8 @@ export default class TouchPortalClient extends EventEmitter {
     }
 
     if (!this.pluginId) {
-      this.log(LoggingLevel.ERROR, 'connect: Plugin ID is missing or empty.');
-      throw new Error('connect: Plugin ID is missing or empty.');
+      this.log(LoggingLevel.ERROR, 'connect: pluginId is missing or empty.');
+      throw new Error('connect: pluginId is missing or empty.');
     }
 
     this.socket = new net.Socket();
@@ -186,7 +188,7 @@ export default class TouchPortalClient extends EventEmitter {
       throw new Error('updateChoice: id parameter is empty');
     }
 
-    if (!Array.isArray(value)) {
+    if (!this.isValidArray(value, false)) {
       this.log(LoggingLevel.ERROR, 'updateChoice: value parameter must be an array');
       throw new Error('updateChoice: value parameter must be an array');
     }
@@ -206,7 +208,7 @@ export default class TouchPortalClient extends EventEmitter {
       throw new Error('updateSpecificChoice: instanceId is not populated');
     }
 
-    if (!Array.isArray(value)) {
+    if (!this.isValidArray(value, false)) {
       this.log(LoggingLevel.ERROR, 'updateSpecificChoice: value parameter must be an array');
       throw new Error('updateSpecificChoice: value parameter must be an array');
     }
@@ -222,7 +224,7 @@ export default class TouchPortalClient extends EventEmitter {
   }
 
   // Connectors
-  public updateConnector(value: number, connectorId?: string, shortId?: string, data?: Record<string, string>): void {
+  public updateConnector(value: number, connectorId?: string, shortId?: string, data?: ConnectorData[]): void {
     const request = this.buildUpdateConnectorDataRequest(value, connectorId, shortId, data);
     this.send(request);
   }
@@ -232,11 +234,11 @@ export default class TouchPortalClient extends EventEmitter {
       value: number;
       connectorId?: string;
       shortId?: string;
-      data?: Record<string, string>;
+      data?: ConnectorData[];
     }[]
   ): void {
-    if (connectors?.length <= 0) {
-      this.log(LoggingLevel.ERROR, 'updateMultipleConnectors : connectors contains no data');
+    if (!this.isValidArray(connectors, true)) {
+      this.log(LoggingLevel.ERROR, 'updateMultipleConnectors: connectors contains no data');
       throw new Error('updateMultipleConnectors: connectors contains no data');
     }
 
@@ -251,7 +253,7 @@ export default class TouchPortalClient extends EventEmitter {
     value: number,
     connectorId?: string,
     shortId?: string,
-    data?: Record<string, string>
+    data?: ConnectorData[]
   ): UpdateConnectorDataRequest {
     if (value < 0 || value > 100) {
       this.log(LoggingLevel.ERROR, `connectorUpdate: value has to be between 0 and 100 ${value}`);
@@ -268,19 +270,18 @@ export default class TouchPortalClient extends EventEmitter {
       throw new Error('connectorUpdate: both connectorId and shortId are provided');
     }
 
-    if (connectorId && !Object.keys(data || {}).length) {
+    if (connectorId && !this.isValidArray(data, false)) {
       this.log(LoggingLevel.ERROR, 'connectorUpdate: when connectorId is provided, data must be an array');
       throw new Error('connectorUpdate: when connectorId is provided, data must be an array');
     }
 
-    if (shortId && Object.keys(data || {}).length >= 0) {
+    if (shortId && this.isValidArray(data, false)) {
       this.log(LoggingLevel.ERROR, 'connectorUpdate: when shortId is provided, data is not allowed');
       throw new Error('connectorUpdate: when shortId is provided, data is not allowed');
     }
 
     if (connectorId) {
-      const dataStr = Object.entries(data || {})
-        .map(([settingKey, settingValue]) => `${settingKey}=${settingValue}`)
+      const dataStr = data!.map((item) => `${item.id}=${item.value}`)
         .join('|');
 
       return {
@@ -295,7 +296,7 @@ export default class TouchPortalClient extends EventEmitter {
 
   // Notifications
   public showNotification(notificationId: string, title: string, msg: string, options: NotificationOption[]): void {
-    if (options?.length <= 0) {
+    if (!this.isValidArray(options, true)) {
       this.log(LoggingLevel.ERROR, 'showNotification: at least one option is required');
       throw new Error('showNotification: at least one option is required');
     }
@@ -353,7 +354,7 @@ export default class TouchPortalClient extends EventEmitter {
       forceUpdate?: boolean;
     }[]
   ): void {
-    if (states?.length <= 0) {
+    if (!this.isValidArray(states, true)) {
       this.log(LoggingLevel.ERROR, 'createMultipleStates: states contains no data');
       throw new Error('createMultipleStates: states contains no data');
     }
@@ -388,8 +389,8 @@ export default class TouchPortalClient extends EventEmitter {
     this.send(request);
   }
 
-  public updateMultpleStates(states: { id: string; value: string | number | boolean }[]): void {
-    if (states?.length <= 0) {
+  public updateMultipleStates(states: { id: string; value: string | number | boolean }[]): void {
+    if (!this.isValidArray(states, true)) {
       this.log(LoggingLevel.ERROR, 'updateMultpleStates: states contains no data');
       throw new Error('updateMultpleStates: states contains no data');
     }
@@ -421,7 +422,7 @@ export default class TouchPortalClient extends EventEmitter {
   }
 
   public sendArray(dataArray: unknown[]): void {
-    if (dataArray.length <= 0) {
+    if (!this.isValidArray(dataArray, true)) {
       this.log(LoggingLevel.ERROR, 'sendArray: dataArray has no length');
       throw new Error('sendArray: dataArray has no length');
     }
@@ -437,7 +438,17 @@ export default class TouchPortalClient extends EventEmitter {
 
   // Internal
   private pair(): void {
-    this.send({ type: 'pair', id: this.pluginId });
+    if (!this.pluginId) {
+      this.log(LoggingLevel.ERROR, 'pair: pluginId is missing or empty.');
+      throw new Error('pair: pluginId is missing or empty.');
+    }
+
+    const request: PairRequest = { type: 'pair', id: this.pluginId };
+    this.send(request);
+  }
+
+  private isValidArray(data: unknown[] | undefined, mustHaveData: boolean): boolean {
+    return mustHaveData ? Array.isArray(data) && data.length > 0 : Array.isArray(data);
   }
 
   private log(level: LoggingLevel, ...args: unknown[]): void {

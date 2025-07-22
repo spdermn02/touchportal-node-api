@@ -4,7 +4,7 @@
   "trailingComma": "none",
   "bracketSameLine": true,
   "htmlWhitespaceSensitivity": "ignore",
-  "endOfLine": "auto",
+  "endOfLine": "lf",
   "overrides": [
     {
       "files": "*.ts",

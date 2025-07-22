@@ -10,7 +10,7 @@
  * @property event - The type of broadcast event that is triggered. Currently only the "pageChange" is supported.
  * @property pageName - (Optional) The name of the page navigated to. The value will be send only when the broadcast is of the type "pageChange".
  * @property previousPageName - (Optional) The name of the page navigated from. The value will be send only when the broadcast is of the type "pageChange".
- * @property deviceIp - (Optional) 	The device ip of the device navigating pages. The value will be send only when the broadcast is of the type "pageChange".
+ * @property deviceIp - (Optional) The device ip of the device navigating pages. The value will be send only when the broadcast is of the type "pageChange".
  * @property deviceName - (Optional) The device name of the device navigating pages. The value will be send only when the broadcast is of the type "pageChange".
  * @property deviceId - (Optional) The device id (set for multiple devices upgrade) of the device navigating pages. The value will be send only when the broadcast is of the type "pageChange".
  */

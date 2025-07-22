@@ -1,6 +1,6 @@
 # Touch Portal API for Node.JS
 
-Build a plugin to Touch Portal with Node.JS utlizing this easy to use library. No need to understand the inner workings of the Touch Portal Socket connection, just install this package, and connect!
+Build a plugin to Touch Portal with Node.JS utlizing this easy to use library.  No need to understand the inner workings of the Touch Portal Socket connection, just install this package, and connect!
 
 - [Touch Portal API for Node.JS](#touch-portal-api-for-nodejs)
   - [ChangeLog](#changelog)
@@ -15,14 +15,12 @@ Build a plugin to Touch Portal with Node.JS utlizing this easy to use library. N
 - [License](#license)
 - [Touch Portal](#touch-portal)
 
-_NOTE_: Make sure your Touch Portal is up-to-date to use the latest features.
+*NOTE*: Make sure your Touch Portal is up-to-date to use the latest features.
 
 ## ChangeLog
-
 see [CHANGELOG.md](CHANGELOG.md)
 
-## Usage
-
+## Usage 
 ### Install using npm
 
 ```shell
@@ -30,8 +28,8 @@ npm install --save touchportal-api
 ```
 
 ### How To Use
-
 What is described below, is pretty basic functionality, the usage of the below is very basic, and not intended to describe the full complexity of a plugin.
+
 
 ```javascript
 // Node.JS style
@@ -93,7 +91,7 @@ TPClient.on("Action", (data,hold) => {
 
     //Will cause a 100ms wait
     await new Promise(r => setTimeout(r,100));
-
+    
     // If we aren't holding(so just a keypress) or we no longer are being held, break this loop
     if( hold === undefined || !heldAction[message.actionId] ) { break; }
   }
@@ -188,7 +186,7 @@ TPClient.on("ConnectorChange",(data) => {
 
   // Or multiple connectors, data key is optional per connector
   // can now take in shortId instead of id
-  let connectors = [
+  let connectors = [ 
     { id: "<connector id1">, value: 23, data: [{"dataId1":"value1"}] },
     { id: "<connector id2">, value: 65 },
     { shortId: "<shortId1">, value: 20 }
@@ -233,13 +231,13 @@ TPClient.on("Broadcast", (data) => {
   // If you want to handle page change events - this is what happens
   // more info here: https://www.touch-portal.com/api/index.php?section=dynamic-actions
 
-  /*
+  /* 
     {"type":"broadcast",
      "event":"pageChange",
      "pageName":"name of the page switched to"
     }
   */
-
+  
 });
 
 TPClient.on("NotificationClicked", (data) => {
@@ -259,7 +257,7 @@ TPClient.on("Settings",(data) => {
 
     //Do something with the Settings message here
     // Note: this can be called any time settings are modified or saved in the TouchPortal Settings window.
-    /*
+    /* 
       [{"Setting 1":"Value 1"},{"Setting 2":"Value 2"},...,{"Setting N":"Value N"}]
     */
 
@@ -289,38 +287,29 @@ TPClient.on("Update", (curVersion, remoteVersion) => {
 //Connects and Pairs to Touch Portal via Sockete
 TPClient.connect({ pluginId });
 
-//If you want touchportal-node-api to check for updates on startup,
+//If you want touchportal-node-api to check for updates on startup, 
 TPClient.connect({ pluginId, "updateUrl":"<url to remote entry.tp file>" });
 
 ```
 
 ## Full Touch Portal API Documentation
-
-Touch Portal interface Documentation here:
+Touch Portal interface Documentation here: 
 [Touch Portal Interface Documentation](https://www.touch-portal.com/api)
 
 # Support
-
 If you need support, drop a question in the github issues tab, and I'll get to it as soon as possible.
 
 # Bugs
-
 Please report bugs using the github issues tab
 
 # Contribute
-
 Feel free to fork this repo and suggest pull requests. I cannot guarantee they will be included, but I'm definitely open to changes, enhancements, bug fixes!
-
 ## Contributors
-
 - [Jameson Allen (spdermn02)](https://github.com/spdermn02)
 - [Andreas Schneider (riverrun-git)](https://github.com/riverrun-git)
 - [Pjiesco](https://github.com/pjiesco)
-
 # License
-
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
 
 # Touch Portal
-
 If you got here, and are like "WTF is this?" it is for integrating custom functionality as a Touch Portal plugin. check out https://touch-portal.com to learn more about Touch Portal and it's amazing features and community.

@@ -10,5 +10,5 @@ import { LoggingLevel } from './logging-level';
 export type TouchPortalClientOptions = {
   pluginId?: string;
   captureRejections?: boolean;
-  logCallback?: (loggingLevel: LoggingLevel, ...args: unknown[]) => void;
+  logCallback?: (loggingLevel: LoggingLevel, ...args: unknown[]) => void | null;
 };

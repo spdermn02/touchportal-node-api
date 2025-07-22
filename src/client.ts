@@ -23,9 +23,12 @@ const CONNECTOR_PREFIX = 'pc';
 
 export default class TouchPortalClient extends EventEmitter {
   private pluginId?: string;
+
   private socket: net.Socket | null;
+
   private customStates: Record<string, string>;
-  private logCallback?: (loggingLevel: LoggingLevel, ...args: unknown[]) => void;
+
+  private logCallback?: (loggingLevel: LoggingLevel, ...args: unknown[]) => void | null;
 
   /**
    * Creates an instance of TouchPortalClient.
@@ -208,7 +211,13 @@ export default class TouchPortalClient extends EventEmitter {
       throw new Error('updateSpecificChoice: value parameter must be an array');
     }
 
-    const request: UpdateSpecificChoiceListRequest = { type: 'choiceUpdate', id, instanceId, value };
+    const request: UpdateSpecificChoiceListRequest = {
+      type: 'choiceUpdate',
+      id,
+      instanceId,
+      value
+    };
+
     this.send(request);
   }
 
@@ -231,8 +240,8 @@ export default class TouchPortalClient extends EventEmitter {
       throw new Error('updateMultipleConnectors: connectors contains no data');
     }
 
-    const request: UpdateConnectorDataRequest[] = connectors.map((connector) =>
-      this.buildUpdateConnectorDataRequest(connector.value, connector.connectorId, connector.shortId, connector.data)
+    const request: UpdateConnectorDataRequest[] = connectors.map(
+      (connector) => this.buildUpdateConnectorDataRequest(connector.value, connector.connectorId, connector.shortId, connector.data)
     );
 
     this.sendArray(request);
@@ -271,7 +280,7 @@ export default class TouchPortalClient extends EventEmitter {
 
     if (connectorId) {
       const dataStr = Object.entries(data || {})
-        .map(([key, value]) => `${key}=${value}`)
+        .map(([settingKey, settingValue]) => `${settingKey}=${settingValue}`)
         .join('|');
 
       return {
@@ -291,7 +300,14 @@ export default class TouchPortalClient extends EventEmitter {
       throw new Error('showNotification: at least one option is required');
     }
 
-    const request: CreateNotificationRequest = { type: 'showNotification', notificationId, title, msg, options };
+    const request: CreateNotificationRequest = {
+      type: 'showNotification',
+      notificationId,
+      title,
+      msg,
+      options
+    };
+
     this.send(request);
   }
 
@@ -338,7 +354,7 @@ export default class TouchPortalClient extends EventEmitter {
     }[]
   ): void {
     if (states?.length <= 0) {
-      this.log(LoggingLevel.ERROR, 'createMultipleStates : states contains no data');
+      this.log(LoggingLevel.ERROR, 'createMultipleStates: states contains no data');
       throw new Error('createMultipleStates: states contains no data');
     }
 
@@ -374,7 +390,7 @@ export default class TouchPortalClient extends EventEmitter {
 
   public updateMultpleStates(states: { id: string; value: string | number | boolean }[]): void {
     if (states?.length <= 0) {
-      this.log(LoggingLevel.ERROR, 'updateMultpleStates : states contains no data');
+      this.log(LoggingLevel.ERROR, 'updateMultpleStates: states contains no data');
       throw new Error('updateMultpleStates: states contains no data');
     }
 
@@ -389,8 +405,8 @@ export default class TouchPortalClient extends EventEmitter {
 
   public removeState(id: string): void {
     if (!id) {
-      this.log(LoggingLevel.ERROR, `removeState: id parameter is empty`);
-      throw new Error(`removeState: id parameter is empty`);
+      this.log(LoggingLevel.ERROR, 'removeState: id parameter is empty');
+      throw new Error('removeState: id parameter is empty');
     }
 
     delete this.customStates[id];
@@ -399,15 +415,14 @@ export default class TouchPortalClient extends EventEmitter {
     this.send(request);
   }
 
-  // Internal
-  private send(data: unknown): void {
+  public send(data: unknown): void {
     this.socket?.write(JSON.stringify(data));
     this.socket?.write('\n');
   }
 
-  private sendArray(dataArray: unknown[]): void {
+  public sendArray(dataArray: unknown[]): void {
     if (dataArray.length <= 0) {
-      this.log(LoggingLevel.ERROR, 'sendArray : dataArray has no length');
+      this.log(LoggingLevel.ERROR, 'sendArray: dataArray has no length');
       throw new Error('sendArray: dataArray has no length');
     }
 
@@ -420,15 +435,16 @@ export default class TouchPortalClient extends EventEmitter {
     this.socket?.write(dataStr);
   }
 
+  // Internal
   private pair(): void {
     this.send({ type: 'pair', id: this.pluginId });
   }
 
   private log(level: LoggingLevel, ...args: unknown[]): void {
-    if (this.logCallback) {
-      this.logCallback(level, ...args);
-    } else {
+    if (this.logCallback === undefined) {
       console.log(`${new Date().toISOString()} : ${this.pluginId} :${level}:`, ...args);
+    } else if (this.logCallback !== null) {
+      this.logCallback(level, ...args);
     }
   }
 }

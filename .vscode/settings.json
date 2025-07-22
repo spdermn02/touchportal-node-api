@@ -10,6 +10,5 @@
   "prettier.htmlWhitespaceSensitivity": "ignore",
   "prettier.endOfLine": "auto",
   "prettier.printWidth": 120,
-  "typescript.preferences.quoteStyle": "single",
-  "oxc.enable": true
+  "typescript.preferences.quoteStyle": "single"
 }

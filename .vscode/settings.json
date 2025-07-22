@@ -8,7 +8,7 @@
   "prettier.trailingComma": "none",
   "prettier.bracketSameLine": true,
   "prettier.htmlWhitespaceSensitivity": "ignore",
-  "prettier.endOfLine": "auto",
+  "prettier.endOfLine": "lf",
   "prettier.printWidth": 120,
   "typescript.preferences.quoteStyle": "single"
 }

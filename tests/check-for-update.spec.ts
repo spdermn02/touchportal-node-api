@@ -2,14 +2,6 @@ import { describe, expect, Mock, test, vi } from 'vitest';
 import { TouchPortalClientOptions } from '../src/types';
 import TouchPortalClient from '../src/client';
 
-vi.mock('require-from-app-root', () => ({
-  requireFromAppRoot: () => {
-    return { version: '1.0.0' };
-  }
-}));
-
-global.fetch = vi.fn();
-
 describe('checkForUpdate', () => {
   const pluginVersion = '1.0.0';
   const pluginId: string = 'test.plugin';

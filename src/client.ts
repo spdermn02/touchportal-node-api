@@ -1,27 +1,25 @@
 import EventEmitter from 'events';
 import net from 'net';
-import compareVersions from 'compare-versions';
-import { requireFromAppRoot } from 'require-from-app-root';
+import { compare } from 'compare-versions';
 import {
   LoggingLevel,
-  TouchPortalClientOptions,
-  TouchPortalConnectOptions,
-  CreateNotificationRequest,
-  CreateStateRequest,
-  NotificationOption,
-  RemoveStateRequest,
-  UpdateChoiceListRequest,
-  UpdateSettingRequest,
-  UpdateSpecificChoiceListRequest,
-  UpdateStateRequest,
-  ActionData,
-  UpdateActionDataRequest,
-  UpdateConnectorDataRequest,
-  PairRequest,
-  ConnectorData
+  type TouchPortalClientOptions,
+  type TouchPortalConnectOptions,
+  type CreateNotificationRequest,
+  type CreateStateRequest,
+  type NotificationOption,
+  type RemoveStateRequest,
+  type UpdateChoiceListRequest,
+  type UpdateSettingRequest,
+  type UpdateSpecificChoiceListRequest,
+  type UpdateStateRequest,
+  type ActionData,
+  type UpdateActionDataRequest,
+  type UpdateConnectorDataRequest,
+  type PairRequest,
+  type ConnectorData
 } from './types';
 
-const pluginVersion = requireFromAppRoot('package.json').version;
 const SOCKET_IP = '127.0.0.1';
 const SOCKET_PORT = 12136;
 const CONNECTOR_PREFIX = 'pc';
@@ -46,6 +44,7 @@ export default class TouchPortalClient extends EventEmitter {
     this.logCallback = options?.logCallback;
   }
 
+  // Plugin Updates
   async checkForUpdate(githubUser: string, githubRepo: string, includePrerelease: boolean = false): Promise<void> {
     const updateUrl = `https://api.github.com/repos/${githubUser}/${githubRepo}/releases`;
 
@@ -63,8 +62,8 @@ export default class TouchPortalClient extends EventEmitter {
         const releaseVersion = release.tag_name.replace(/^v/, '');
 
         if (includePrerelease || !release.prerelease) {
-          if (compareVersions.compare(releaseVersion, pluginVersion, '>')) {
-            this.emit('Update', pluginVersion, releaseVersion);
+          if (compare(releaseVersion, TOUCHPORTAL_NODE_API_VERSION, '>')) {
+            this.emit('Update', TOUCHPORTAL_NODE_API_VERSION, releaseVersion);
             return true;
           }
         }
@@ -445,6 +444,7 @@ export default class TouchPortalClient extends EventEmitter {
     this.send(request);
   }
 
+  // Socket Communication
   public send(data: unknown): void {
     this.socket?.write(JSON.stringify(data));
     this.socket?.write('\n');

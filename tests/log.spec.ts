@@ -1,5 +1,5 @@
 import { describe, expect, test, vi } from 'vitest';
-import { TouchPortalClientOptions } from '../src/types';
+import type { TouchPortalClientOptions } from '../src/types';
 import TouchPortalClient from '../src/client';
 
 describe('log', () => {

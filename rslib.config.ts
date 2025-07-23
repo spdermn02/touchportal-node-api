@@ -1,4 +1,5 @@
 import { defineConfig } from '@rslib/core';
+import { version } from './package.json';
 
 export default defineConfig({
   lib: [
@@ -11,5 +12,10 @@ export default defineConfig({
       format: 'cjs',
       syntax: ['node 18']
     }
-  ]
+  ],
+  source: {
+    define: {
+      TOUCHPORTAL_NODE_API_VERSION: JSON.stringify(version)
+    }
+  }
 });

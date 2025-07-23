@@ -5,4 +5,4 @@
 export type PairRequest = {
   type: 'pair';
   id: string;
-}
+};

@@ -1,11 +1,6 @@
-import {
-  describe,
-  expect,
-  test,
-  vi
-} from 'vitest';
-import TouchPortalClient from '../src/client';
+import { describe, expect, test, vi } from 'vitest';
 import { TouchPortalClientOptions } from '../src/types';
+import TouchPortalClient from '../src/client';
 
 describe('log', () => {
   test('should call logCallback when defined', async () => {
@@ -45,13 +40,16 @@ describe('log', () => {
     { logCallback: true },
     { logCallback: 1 },
     { logCallback: {} }
-  ] as unknown as TouchPortalClientOptions[])('should not call console.log if logCallback is not a function', (options) => {
-    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-    const client = new TouchPortalClient(options);
+  ] as unknown as TouchPortalClientOptions[])(
+    'should not call console.log if logCallback is not a function',
+    (options) => {
+      const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+      const client = new TouchPortalClient(options);
 
-    expect(() => client.connect()).toThrow();
-    expect(logSpy).not.toHaveBeenCalled();
+      expect(() => client.connect()).toThrow();
+      expect(logSpy).not.toHaveBeenCalled();
 
-    logSpy.mockRestore();
-  });
+      logSpy.mockRestore();
+    }
+  );
 });

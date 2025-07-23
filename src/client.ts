@@ -1,5 +1,7 @@
 import EventEmitter from 'events';
 import net from 'net';
+import compareVersions from 'compare-versions';
+import { requireFromAppRoot } from 'require-from-app-root';
 import {
   LoggingLevel,
   TouchPortalClientOptions,
@@ -19,6 +21,7 @@ import {
   ConnectorData
 } from './types';
 
+const pluginVersion = requireFromAppRoot('package.json').version;
 const SOCKET_IP = '127.0.0.1';
 const SOCKET_PORT = 12136;
 const CONNECTOR_PREFIX = 'pc';
@@ -41,6 +44,37 @@ export default class TouchPortalClient extends EventEmitter {
     this.socket = null;
     this.customStates = {};
     this.logCallback = options?.logCallback;
+  }
+
+  async checkForUpdate(githubUser: string, githubRepo: string, includePrerelease: boolean = false): Promise<void> {
+    const updateUrl = `https://api.github.com/repos/${githubUser}/${githubRepo}/releases`;
+
+    try {
+      const response = await fetch(updateUrl, {
+        headers: { 'User-Agent': this.pluginId }
+      });
+
+      if (!response.ok) {
+        throw new Error(`${this.pluginId}: Request failed with status ${response.status}`);
+      }
+
+      const releases = (await response.json()) as { tag_name: string; prerelease: boolean }[];
+      releases.some((release: { tag_name: string; prerelease: boolean }) => {
+        const releaseVersion = release.tag_name.replace(/^v/, '');
+
+        if (includePrerelease || !release.prerelease) {
+          if (compareVersions.compare(releaseVersion, pluginVersion, '>')) {
+            this.emit('Update', pluginVersion, releaseVersion);
+            return true;
+          }
+        }
+
+        return false;
+      });
+    } catch (ex: unknown) {
+      const err = ex instanceof Error ? ex : new Error(String(ex));
+      this.log(LoggingLevel.ERROR, `checkForUpdate: Check for update failed: ${err.message}`);
+    }
   }
 
   // Connection
@@ -242,7 +276,6 @@ export default class TouchPortalClient extends EventEmitter {
     const request: UpdateConnectorDataRequest[] = connectors.map((connector) =>
       this.buildUpdateConnectorDataRequest(connector.value, connector.connectorId, connector.shortId, connector.data)
     );
-
     this.sendArray(request);
   }
 

@@ -1,13 +1,7 @@
-import {
-  describe,
-  expect,
-  Mock,
-  test,
-  vi
-} from 'vitest';
+import { describe, expect, Mock, test, vi } from 'vitest';
 import { getMockSocketFrom } from './mocks/mock-socket';
-import TouchPortalClient from '../src/client';
 import { PairRequest, TouchPortalClientOptions, TouchPortalConnectOptions } from '../src/types';
+import TouchPortalClient from '../src/client';
 
 describe('connect', () => {
   const pluginId: string = 'test.plugin';
@@ -86,10 +80,7 @@ describe('connect', () => {
       expect(listener).toHaveBeenCalledWith(testError);
     });
 
-    test.each([
-      true,
-      false
-    ])('on "close" emits "disconnected" event', (hasError) => {
+    test.each([true, false])('on "close" emits "disconnected" event', (hasError) => {
       const listener = vi.fn();
       const client = new TouchPortalClient(defaultConstructorOptions);
       client.on('disconnected', listener);
@@ -331,22 +322,19 @@ describe('connect', () => {
       });
 
       describe('unhandled type', () => {
-        test.each([
-          {},
-          { type: undefined },
-          { type: null },
-          { type: '' },
-          { type: 'unknown' }
-        ])('"down" should emit "Message" event', (message) => {
-          const listener = vi.fn();
-          const client = new TouchPortalClient(defaultConstructorOptions);
-          client.on('Message', listener);
+        test.each([{}, { type: undefined }, { type: null }, { type: '' }, { type: 'unknown' }])(
+          '"down" should emit "Message" event',
+          (message) => {
+            const listener = vi.fn();
+            const client = new TouchPortalClient(defaultConstructorOptions);
+            client.on('Message', listener);
 
-          const mockSocket = getMockSocketFrom(() => client.connect());
-          mockSocket.emit('data', `${JSON.stringify(message)}\n`);
+            const mockSocket = getMockSocketFrom(() => client.connect());
+            mockSocket.emit('data', `${JSON.stringify(message)}\n`);
 
-          expect(listener).toHaveBeenCalledWith(message);
-        });
+            expect(listener).toHaveBeenCalledWith(message);
+          }
+        );
       });
     });
   });

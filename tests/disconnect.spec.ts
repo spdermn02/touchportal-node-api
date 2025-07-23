@@ -1,13 +1,7 @@
-import {
-  describe,
-  expect,
-  Mock,
-  test,
-  vi
-} from 'vitest';
+import { describe, expect, Mock, test, vi } from 'vitest';
 import { getMockSocketFrom } from './mocks/mock-socket';
-import TouchPortalClient from '../src/client';
 import { TouchPortalClientOptions } from '../src/types';
+import TouchPortalClient from '../src/client';
 
 describe('disconnect', () => {
   const pluginId: string = 'test.plugin';

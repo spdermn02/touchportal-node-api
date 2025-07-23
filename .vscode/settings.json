@@ -11,5 +11,6 @@
   "prettier.htmlWhitespaceSensitivity": "ignore",
   "prettier.endOfLine": "lf",
   "prettier.printWidth": 120,
-  "typescript.preferences.quoteStyle": "single"
+  "typescript.preferences.quoteStyle": "single",
+  "vitest.shellType": "terminal"
 }

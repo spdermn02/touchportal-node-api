@@ -20,7 +20,8 @@
     "dev": "rslib build --watch",
     "format": "prettier --write .",
     "lint": "eslint .",
-    "install": "npm run build"
+    "install": "npm run build",
+    "test": "vitest --config vitest.config.mts"
   },
   "keywords": [
     "TouchPortal"

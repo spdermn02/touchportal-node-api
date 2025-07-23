@@ -25,12 +25,9 @@ const CONNECTOR_PREFIX = 'pc';
 
 export default class TouchPortalClient extends EventEmitter {
   private pluginId?: string;
-
   private socket: net.Socket | null;
-
   private customStates: Record<string, string>;
-
-  private logCallback?: (loggingLevel: LoggingLevel, ...args: unknown[]) => void | null;
+  private logCallback?: ((level: LoggingLevel, ...args: unknown[]) => void) | null;
 
   /**
    * Creates an instance of TouchPortalClient.
@@ -99,7 +96,7 @@ export default class TouchPortalClient extends EventEmitter {
           case 'closePlugin':
             if (message.pluginId === this.pluginId) {
               this.emit('Close', message);
-              this.socket?.end();
+              this.disconnect();
             }
             break;
           case 'info':
@@ -168,7 +165,7 @@ export default class TouchPortalClient extends EventEmitter {
   // Actions
   public updateActionData(data: ActionData, instanceId?: string): void {
     if ([data.id, data.minValue, data.maxValue, data.type].some((value) => value === undefined || value === '')) {
-      this.log(LoggingLevel.ERROR, 'updateActionData : required data is missing from instance', JSON.stringify(data));
+      this.log(LoggingLevel.ERROR, 'updateActionData: required data is missing from instance', JSON.stringify(data));
       throw new Error(`updateActionData: required data is missing from instance. ${JSON.stringify(data)}`);
     }
 
@@ -242,8 +239,8 @@ export default class TouchPortalClient extends EventEmitter {
       throw new Error('updateMultipleConnectors: connectors contains no data');
     }
 
-    const request: UpdateConnectorDataRequest[] = connectors.map(
-      (connector) => this.buildUpdateConnectorDataRequest(connector.value, connector.connectorId, connector.shortId, connector.data)
+    const request: UpdateConnectorDataRequest[] = connectors.map((connector) =>
+      this.buildUpdateConnectorDataRequest(connector.value, connector.connectorId, connector.shortId, connector.data)
     );
 
     this.sendArray(request);
@@ -281,8 +278,7 @@ export default class TouchPortalClient extends EventEmitter {
     }
 
     if (connectorId) {
-      const dataStr = data!.map((item) => `${item.id}=${item.value}`)
-        .join('|');
+      const dataStr = data!.map((item) => `${item.id}=${item.value}`).join('|');
 
       return {
         type: 'connectorUpdate',
@@ -452,10 +448,10 @@ export default class TouchPortalClient extends EventEmitter {
   }
 
   private log(level: LoggingLevel, ...args: unknown[]): void {
-    if (this.logCallback === undefined) {
-      console.log(`${new Date().toISOString()} : ${this.pluginId} :${level}:`, ...args);
-    } else if (this.logCallback !== null) {
+    if (typeof this.logCallback === 'function') {
       this.logCallback(level, ...args);
+    } else if (this.logCallback === undefined) {
+      console.log(`${new Date().toISOString()} : ${this.pluginId || ''} :${level}:`, ...args);
     }
   }
 }

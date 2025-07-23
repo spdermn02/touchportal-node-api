@@ -24,6 +24,7 @@
     "no-param-reassign": "off",
     "comma-dangle": "off",
     "class-methods-use-this": "off",
+    "lines-between-class-members": "off",
     "import/extensions": "off",
     "import/prefer-default-export": "off"
   },
@@ -32,5 +33,16 @@
     "import/resolver": {
       "typescript": {}
     }
-  }
+  },
+  "overrides": [
+    {
+      "files": ["tests/**/*.ts", "vitest.config.mts"],
+      "parserOptions": {
+        "project": "./tests/tsconfig.test.json"
+      },
+      "rules": {
+        "import/no-extraneous-dependencies": ["error", { "devDependencies": true }]
+      }
+    }
+  ]
 }

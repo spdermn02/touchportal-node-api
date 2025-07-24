@@ -1,4 +1,5 @@
-import { EventData } from './event-data';
+import type { EventData } from './event-data';
+import type { TouchPortalIncomingEventType } from './touch-portal-incoming-event-type';
 
 /**
  * Touch Portal will send messages to your plugin when the connector is used in a connector event.
@@ -27,7 +28,7 @@ import { EventData } from './event-data';
  * @property data - An array of id's and value's containing additional data for the event.
  */
 export type ConnectorChangeEvent = {
-  type: 'connectorChange';
+  type: TouchPortalIncomingEventType.ConnectorChange;
   pluginId: string;
   connectorId: string;
   value: number;

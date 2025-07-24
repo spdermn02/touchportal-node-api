@@ -1,4 +1,5 @@
-import { ActionData } from './action-data';
+import type { ActionData } from './action-data';
+import type { TouchPortalOutgoingRequestType } from '../touch-portal-outgoing-request-type';
 
 /**
  * You can change the characteristich of certain action data using this message.
@@ -15,7 +16,7 @@ import { ActionData } from './action-data';
  * @property data - The object containing all new data for the action data object.
  */
 export type UpdateActionDataRequest = {
-  type: 'updateActionData';
+  type: TouchPortalOutgoingRequestType.UpdateSpecificAction;
   instanceId?: string;
   data: ActionData;
 };

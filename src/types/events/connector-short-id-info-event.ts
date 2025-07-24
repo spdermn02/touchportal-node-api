@@ -1,3 +1,5 @@
+import type { TouchPortalIncomingEventType } from './touch-portal-incoming-event-type';
+
 /**
  * Whenever a user creates a connector for the first time a shortId is generated for that connector that represents the long connectorId.
  * This short id is useful for when you create long connector ids and the id will be longer than the max of 200 characters.
@@ -14,7 +16,7 @@
  * @property connectorId - The long normal connector id.
  */
 export type ConnectorShortIdInfoEvent = {
-  type: 'shortConnectorIdNotification';
+  type: TouchPortalIncomingEventType.ConnectorShortIdInfo;
   pluginId: string;
   shortId: number;
   connectorId: string;

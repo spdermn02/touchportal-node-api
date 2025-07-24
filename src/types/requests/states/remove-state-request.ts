@@ -1,3 +1,5 @@
+import type { TouchPortalOutgoingRequestType } from '../touch-portal-outgoing-request-type';
+
 /**
  * You can remove states at runtime.
  *
@@ -7,6 +9,6 @@
  * @property id - The id of the plug-in state to remove.
  */
 export type RemoveStateRequest = {
-  type: 'removeState';
+  type: TouchPortalOutgoingRequestType.RemoveState;
   id: string;
 };

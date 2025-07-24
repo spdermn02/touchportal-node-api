@@ -1,3 +1,5 @@
+import type { TouchPortalOutgoingRequestType } from '../touch-portal-outgoing-request-type';
+
 /**
  * You can also update state lists in Touch Portal. These state lists needs to be defined in the entry file.
  *
@@ -11,7 +13,7 @@
  * @property value - The collection of texts that should be the new list to display for this given choice list id.
  */
 export type UpdateStateListRequest = {
-  type: 'stateListUpdate';
+  type: TouchPortalOutgoingRequestType.UpdateStateList;
   id: string;
   value: string[];
 };

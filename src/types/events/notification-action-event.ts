@@ -1,3 +1,5 @@
+import type { TouchPortalIncomingEventType } from './touch-portal-incoming-event-type';
+
 /**
  * Touch Portal will send a message when a user clicks on a notification action.
  * When they do the notification is also marked as read/handled.
@@ -9,7 +11,7 @@
  * @property optionId - The id of the option.
  */
 export type NotificationActionEvent = {
-  type: 'notificationOptionClicked';
+  type: TouchPortalIncomingEventType.NotificationAction;
   notificationId: string;
   optionId: string;
 };

@@ -1,3 +1,5 @@
+import type { TouchPortalOutgoingRequestType } from '../touch-portal-outgoing-request-type';
+
 /**
  * You can update specific lists in Touch Portal. This is different from state lists as these will update the dropdown list associated.
  * Still this is very handy when you want to fill in a list for the user based on changes in your plug-in.
@@ -14,7 +16,7 @@
  * @property value - The collection of texts that should be the new list to display for this given choice list id.
  */
 export type UpdateSpecificChoiceListRequest = {
-  type: 'choiceUpdate';
+  type: TouchPortalOutgoingRequestType.UpdateSpecificList;
   id: string;
   instanceId: string;
   value: string[];

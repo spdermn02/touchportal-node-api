@@ -1,4 +1,5 @@
-import { EventData } from './event-data';
+import type { EventData } from './event-data';
+import type { TouchPortalIncomingEventType } from './touch-portal-incoming-event-type';
 
 /**
  * Touch Portal will send messages to your plugin when the action is used in a hold button event.
@@ -14,7 +15,7 @@ import { EventData } from './event-data';
  * @property data - An array of id's and value's containing additional data for the event.
  */
 export type ActionHoldInfoEvent = {
-  type: 'up' | 'down';
+  type: TouchPortalIncomingEventType.ActionHoldInfo_Up | TouchPortalIncomingEventType.ActionHoldInfo_Down;
   pluginId: string;
   actionId: string;
   data: EventData[];

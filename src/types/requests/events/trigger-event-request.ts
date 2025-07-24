@@ -1,3 +1,5 @@
+import type { TouchPortalOutgoingRequestType } from '../touch-portal-outgoing-request-type';
+
 /**
  * You can trigger predefined Events by sending a message to Touch Portal with the given eventId and additional data.
  *
@@ -11,7 +13,7 @@
  * @property states - This is a JSON Object that holds key value pairs of data that are used within Touch Portal as Local States.
  */
 export type TriggerEventRequest = {
-  type: 'triggerEvent';
+  type: TouchPortalOutgoingRequestType.TriggerEvent;
   eventId: string;
   states?: Record<string, string>;
 };

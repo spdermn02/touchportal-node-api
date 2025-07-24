@@ -1,4 +1,5 @@
-import { DeviceInfo } from './device-info';
+import type { DeviceInfo } from './device-info';
+import type { TouchPortalIncomingEventType } from './touch-portal-incoming-event-type';
 
 /**
  * Represents an informational event received from Touch Portal.
@@ -14,7 +15,7 @@ import { DeviceInfo } from './device-info';
  * @property status The current status of the plugin.
  */
 export type InfoEvent = {
-  type: 'info';
+  type: TouchPortalIncomingEventType.Info;
   sdkVersion: string;
   tpVersionString: string;
   tpVersionCode: number;

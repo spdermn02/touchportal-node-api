@@ -1,3 +1,5 @@
+import type { TouchPortalIncomingEventType } from './touch-portal-incoming-event-type';
+
 /**
  * Touch Portal will send a message when it is closing the plugin for some reason.
  * Touch Portal will also try to close the process. This will happen approximately after 500 ms.
@@ -10,6 +12,6 @@
  * @property pluginId - The id of the plugin.
  */
 export type CloseEvent = {
-  type: 'closePlugin';
+  type: TouchPortalIncomingEventType.ClosePluginCall;
   pluginId: string;
 };

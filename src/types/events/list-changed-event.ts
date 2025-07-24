@@ -1,4 +1,5 @@
-import { EventData } from './event-data';
+import type { EventData } from './event-data';
+import type { TouchPortalIncomingEventType } from './touch-portal-incoming-event-type';
 
 /**
  * Touch Portal will send messages when a list of choices value is changed.
@@ -16,7 +17,7 @@ import { EventData } from './event-data';
  * @property values - An array of event data representing the new state of the list.
  */
 export type ListChangedEvent = {
-  type: 'listChange';
+  type: TouchPortalIncomingEventType.ListChanged;
   pluginId: string;
   actionId: string;
   listId: string;

@@ -1,4 +1,5 @@
-import { EventData } from './event-data';
+import type { EventData } from './event-data';
+import type { TouchPortalIncomingEventType } from './touch-portal-incoming-event-type';
 
 /**
  * Touch Portal will send messages when an action is being triggered (when the button containing one of your plug-in actions
@@ -12,7 +13,7 @@ import { EventData } from './event-data';
  * @property data - An array of id's and value's containing additional data for the event.
  */
 export type ExecuteActionEvent = {
-  type: 'action';
+  type: TouchPortalIncomingEventType.ExecuteAction;
   pluginId: string;
   actionId: string;
   data: EventData[];

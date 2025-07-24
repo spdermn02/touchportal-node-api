@@ -3,6 +3,9 @@ import net from 'net';
 import { compare } from 'compare-versions';
 import {
   LoggingLevel,
+  TouchPortalIncomingEventType,
+  TouchPortalOutgoingRequestType,
+  TouchPortalClientEvent,
   type TouchPortalClientOptions,
   type TouchPortalConnectOptions,
   type CreateNotificationRequest,
@@ -17,7 +20,8 @@ import {
   type UpdateActionDataRequest,
   type UpdateConnectorDataRequest,
   type PairRequest,
-  type ConnectorData
+  type ConnectorData,
+  type TriggerEventRequest
 } from './types';
 
 const SOCKET_IP = '127.0.0.1';
@@ -63,7 +67,7 @@ export default class TouchPortalClient extends EventEmitter {
 
         if (includePrerelease || !release.prerelease) {
           if (compare(releaseVersion, TOUCHPORTAL_NODE_API_VERSION, '>')) {
-            this.emit('Update', TOUCHPORTAL_NODE_API_VERSION, releaseVersion);
+            this.emit(TouchPortalClientEvent.Update, TOUCHPORTAL_NODE_API_VERSION, releaseVersion);
             return true;
           }
         }
@@ -92,7 +96,7 @@ export default class TouchPortalClient extends EventEmitter {
     this.socket = new net.Socket();
     this.socket.setEncoding('utf8');
     this.socket.connect(SOCKET_PORT, SOCKET_IP, () => {
-      this.emit('connected');
+      this.emit(TouchPortalClientEvent.Connected);
       this.pair();
     });
 
@@ -126,50 +130,50 @@ export default class TouchPortalClient extends EventEmitter {
 
         // Handle internal TP Messages here, else pass to user code
         switch (message.type) {
-          case 'closePlugin':
+          case TouchPortalIncomingEventType.ClosePluginCall:
             if (message.pluginId === this.pluginId) {
-              this.emit('Close', message);
+              this.emit(TouchPortalClientEvent.Close, message);
               this.disconnect();
             }
             break;
-          case 'info':
-            this.emit('Info', message);
+          case TouchPortalIncomingEventType.Info:
+            this.emit(TouchPortalClientEvent.Info, message);
 
             if (message.settings) {
-              this.emit('Settings', message.settings);
+              this.emit(TouchPortalClientEvent.Settings, message.settings);
             }
 
             break;
-          case 'notificationOptionClicked':
-            this.emit('NotificationClicked', message);
+          case TouchPortalIncomingEventType.NotificationAction:
+            this.emit(TouchPortalClientEvent.NotificationClicked, message);
             break;
-          case 'settings':
+          case TouchPortalIncomingEventType.Settings:
             // values is the key that is the same as how info contains settings key, for direct settings saving
-            this.emit('Settings', message.values);
+            this.emit(TouchPortalClientEvent.Settings, message.values);
             break;
-          case 'listChange':
-            this.emit('ListChange', message);
+          case TouchPortalIncomingEventType.ListChanged:
+            this.emit(TouchPortalClientEvent.ListChange, message);
             break;
-          case 'action':
-            this.emit('Action', message, null);
+          case TouchPortalIncomingEventType.ExecuteAction:
+            this.emit(TouchPortalClientEvent.Action, message, null);
             break;
-          case 'broadcast':
-            this.emit('Broadcast', message);
+          case TouchPortalIncomingEventType.Broadcast:
+            this.emit(TouchPortalClientEvent.Broadcast, message);
             break;
-          case 'shortConnectorIdNotification':
-            this.emit('ConnectorShortIdNotification', message);
+          case TouchPortalIncomingEventType.ConnectorShortIdInfo:
+            this.emit(TouchPortalClientEvent.ConnectorShortIdNotification, message);
             break;
-          case 'connectorChange':
-            this.emit('ConnectorChange', message);
+          case TouchPortalIncomingEventType.ConnectorChange:
+            this.emit(TouchPortalClientEvent.ConnectorChange, message);
             break;
-          case 'up':
-            this.emit('Action', message, false);
+          case TouchPortalIncomingEventType.ActionHoldInfo_Up:
+            this.emit(TouchPortalClientEvent.Action, message, false);
             break;
-          case 'down':
-            this.emit('Action', message, true);
+          case TouchPortalIncomingEventType.ActionHoldInfo_Down:
+            this.emit(TouchPortalClientEvent.Action, message, true);
             break;
           default:
-            this.emit('Message', message);
+            this.emit(TouchPortalClientEvent.Message, message);
         }
       }
     });
@@ -207,7 +211,11 @@ export default class TouchPortalClient extends EventEmitter {
       throw new Error('updateActionData: only number types are supported');
     }
 
-    const request: UpdateActionDataRequest = { type: 'updateActionData', instanceId, data };
+    const request: UpdateActionDataRequest = {
+      type: TouchPortalOutgoingRequestType.UpdateSpecificAction,
+      instanceId,
+      data
+    };
     this.send(request);
   }
 
@@ -223,7 +231,7 @@ export default class TouchPortalClient extends EventEmitter {
       throw new Error('updateChoice: value parameter must be an array');
     }
 
-    const request: UpdateChoiceListRequest = { type: 'choiceUpdate', id, value };
+    const request: UpdateChoiceListRequest = { type: TouchPortalOutgoingRequestType.UpdateChoiceList, id, value };
     this.send(request);
   }
 
@@ -244,7 +252,7 @@ export default class TouchPortalClient extends EventEmitter {
     }
 
     const request: UpdateSpecificChoiceListRequest = {
-      type: 'choiceUpdate',
+      type: TouchPortalOutgoingRequestType.UpdateSpecificList,
       id,
       instanceId,
       value
@@ -313,13 +321,19 @@ export default class TouchPortalClient extends EventEmitter {
       const dataStr = data!.map((item) => `${item.id}=${item.value}`).join('|');
 
       return {
-        type: 'connectorUpdate',
+        type: TouchPortalOutgoingRequestType.UpdateConnectorData,
         connectorId: `${CONNECTOR_PREFIX}_${this.pluginId}_${connectorId}${dataStr}`,
         value
       };
     }
 
-    return { type: 'connectorUpdate', shortId, value };
+    return { type: TouchPortalOutgoingRequestType.UpdateConnectorData, shortId, value };
+  }
+
+  // Events
+  public triggerEvent(eventId: string, states?: Record<string, string>) {
+    const request: TriggerEventRequest = { type: TouchPortalOutgoingRequestType.TriggerEvent, eventId, states };
+    this.send(request);
   }
 
   // Notifications
@@ -330,7 +344,7 @@ export default class TouchPortalClient extends EventEmitter {
     }
 
     const request: CreateNotificationRequest = {
-      type: 'showNotification',
+      type: TouchPortalOutgoingRequestType.CreateANotification,
       notificationId,
       title,
       msg,
@@ -342,7 +356,7 @@ export default class TouchPortalClient extends EventEmitter {
 
   // Settings
   public updateSetting(name: string, value: string) {
-    const request: UpdateSettingRequest = { type: 'settingUpdate', name, value };
+    const request: UpdateSettingRequest = { type: TouchPortalOutgoingRequestType.UpdateSetting, name, value };
     this.send(request);
   }
 
@@ -362,7 +376,7 @@ export default class TouchPortalClient extends EventEmitter {
     this.customStates[id] = desc;
 
     const request: CreateStateRequest = {
-      type: 'createState',
+      type: TouchPortalOutgoingRequestType.CreateAState,
       id,
       desc,
       defaultValue: `${defaultValue}`,
@@ -400,7 +414,7 @@ export default class TouchPortalClient extends EventEmitter {
         this.customStates[state.id] = state.desc;
 
         return {
-          type: 'createState',
+          type: TouchPortalOutgoingRequestType.CreateAState,
           id: state.id,
           desc: state.desc,
           defaultValue: String(state.defaultValue),
@@ -413,7 +427,7 @@ export default class TouchPortalClient extends EventEmitter {
   }
 
   public updateState(id: string, value: string | number | boolean): void {
-    const request: UpdateStateRequest = { type: 'stateUpdate', id, value: `${value}` };
+    const request: UpdateStateRequest = { type: TouchPortalOutgoingRequestType.UpdateState, id, value: `${value}` };
     this.send(request);
   }
 
@@ -424,7 +438,7 @@ export default class TouchPortalClient extends EventEmitter {
     }
 
     const request: UpdateStateRequest[] = states.map((state) => ({
-      type: 'stateUpdate',
+      type: TouchPortalOutgoingRequestType.UpdateState,
       id: state.id,
       value: String(state.value)
     }));
@@ -440,7 +454,7 @@ export default class TouchPortalClient extends EventEmitter {
 
     delete this.customStates[id];
 
-    const request: RemoveStateRequest = { type: 'removeState', id };
+    const request: RemoveStateRequest = { type: TouchPortalOutgoingRequestType.RemoveState, id };
     this.send(request);
   }
 
@@ -472,7 +486,7 @@ export default class TouchPortalClient extends EventEmitter {
       throw new Error('pair: pluginId is missing or empty.');
     }
 
-    const request: PairRequest = { type: 'pair', id: this.pluginId };
+    const request: PairRequest = { type: TouchPortalOutgoingRequestType.Pair, id: this.pluginId };
     this.send(request);
   }
 

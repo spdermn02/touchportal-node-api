@@ -1,3 +1,5 @@
+import type { TouchPortalOutgoingRequestType } from '../touch-portal-outgoing-request-type';
+
 /**
  * Connectors within Touch Portal can be bi-directional.
  * This means that your plug-in will receive updates when the user uses a connector supported control that has your connector connected
@@ -34,7 +36,7 @@
  * Please note, if this attribute is set, the message is being interpreted as this type of message and the "value" attribute is ignored.
  */
 export type UpdateConnectorDataRequest = {
-  type: 'connectorUpdate';
+  type: TouchPortalOutgoingRequestType.UpdateConnectorData;
   connectorId?: string;
   shortId?: string;
   value: number;

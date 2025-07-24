@@ -1,3 +1,5 @@
+import type { TouchPortalOutgoingRequestType } from '../touch-portal-outgoing-request-type';
+
 /**
  * You can also update choice lists in Touch Portal. This will update the choice lists with the given ID.
  *
@@ -11,7 +13,7 @@
  * @property value - The collection of texts that should be the new list to display for this given choice list id.
  */
 export type UpdateChoiceListRequest = {
-  type: 'choiceUpdate';
+  type: TouchPortalOutgoingRequestType.UpdateChoiceList;
   id: string;
   value: string[];
 };

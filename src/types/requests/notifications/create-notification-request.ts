@@ -1,4 +1,5 @@
-import { NotificationOption } from './notification-option';
+import type { NotificationOption } from './notification-option';
+import type { TouchPortalOutgoingRequestType } from '../touch-portal-outgoing-request-type';
 
 /**
  * As a plug-in developer you can alert your users within Touch Portal for certain events.
@@ -23,7 +24,7 @@ import { NotificationOption } from './notification-option';
  * At least one option is required.
  */
 export type CreateNotificationRequest = {
-  type: 'showNotification';
+  type: TouchPortalOutgoingRequestType.CreateANotification;
   notificationId: string;
   title: string;
   msg: string;

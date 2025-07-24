@@ -1,3 +1,4 @@
+export * from './touch-portal-outgoing-request-type';
 export * from './actions/action-data';
 export * from './notifications/notification-option';
 export * from './actions/update-action-data-request';

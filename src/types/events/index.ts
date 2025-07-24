@@ -1,4 +1,5 @@
 export * from './event-data';
+export * from './touch-portal-incoming-event-type';
 export * from './device-info';
 export * from './info-event';
 export * from './execute-action-event';

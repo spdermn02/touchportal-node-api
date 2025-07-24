@@ -1,3 +1,5 @@
+import type { TouchPortalOutgoingRequestType } from '../touch-portal-outgoing-request-type';
+
 /**
  * States can be created on runtime using by sending a "createState" message to Touch Portal with the given information.
  *
@@ -14,7 +16,7 @@
  * existing and will trigger the state changed event even if the value is the same as the already existing one.
  */
 export type CreateStateRequest = {
-  type: 'createState';
+  type: TouchPortalOutgoingRequestType.CreateAState;
   id: string;
   desc: string;
   defaultValue: string;

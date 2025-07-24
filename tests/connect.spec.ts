@@ -1,6 +1,11 @@
 import { describe, expect, Mock, test, vi } from 'vitest';
 import { getMockSocketFrom } from './mocks/mock-socket';
-import type { PairRequest, TouchPortalClientOptions, TouchPortalConnectOptions } from '../src/types';
+import {
+  TouchPortalOutgoingRequestType,
+  type PairRequest,
+  type TouchPortalClientOptions,
+  type TouchPortalConnectOptions
+} from '../src/types';
 import TouchPortalClient from '../src/client';
 
 describe('connect', () => {
@@ -33,7 +38,7 @@ describe('connect', () => {
   });
 
   test('on connect sends "pair" request', () => {
-    const expectedPairRequest: PairRequest = { type: 'pair', id: pluginId };
+    const expectedPairRequest: PairRequest = { type: TouchPortalOutgoingRequestType.Pair, id: pluginId };
     const client = new TouchPortalClient(defaultConstructorOptions);
     const mockSocket = getMockSocketFrom(() => client.connect());
 

@@ -1,3 +1,5 @@
+import type { TouchPortalOutgoingRequestType } from '../touch-portal-outgoing-request-type';
+
 /**
  * With this option you can update a setting from your plug-in. This will overwrite the user setting.
  *
@@ -8,7 +10,7 @@
  * @property value - The new value the setting should hold.
  */
 export type UpdateSettingRequest = {
-  type: 'settingUpdate';
+  type: TouchPortalOutgoingRequestType.UpdateSetting;
   name: string;
   value: string;
 };

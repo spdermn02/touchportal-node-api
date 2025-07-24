@@ -18,15 +18,10 @@
     "plugin:prettier/recommended" 
   ],
   "rules": {
-    "global-require": "off",
-    "max-len": "off",
     "no-console": "off",
-    "no-continue": "off",
-    "no-param-reassign": "off",
     "comma-dangle": "off",
     "class-methods-use-this": "off",
     "lines-between-class-members": "off",
-    "consistent-return": "off",
     "import/extensions": "off",
     "import/prefer-default-export": "off",
     "prettier/prettier": "error"

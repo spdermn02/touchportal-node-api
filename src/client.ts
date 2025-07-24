@@ -119,61 +119,59 @@ export default class TouchPortalClient extends EventEmitter {
         pos = n + 1; // advance next newline search position
         lineBuffer = ''; // we're done with the line buffer
 
-        // Try to decode the message.
-        let message;
         try {
-          message = JSON.parse(line);
+          // Try to decode the message.
+          const message = JSON.parse(line);
+
+          // Handle internal TP Messages here, else pass to user code
+          switch (message.type) {
+            case TouchPortalIncomingEventType.ClosePluginCall:
+              if (message.pluginId === this.pluginId) {
+                this.emit(TouchPortalClientEvent.Close, message);
+                this.disconnect();
+              }
+              break;
+            case TouchPortalIncomingEventType.Info:
+              this.emit(TouchPortalClientEvent.Info, message);
+
+              if (message.settings) {
+                this.emit(TouchPortalClientEvent.Settings, message.settings);
+              }
+
+              break;
+            case TouchPortalIncomingEventType.NotificationAction:
+              this.emit(TouchPortalClientEvent.NotificationClicked, message);
+              break;
+            case TouchPortalIncomingEventType.Settings:
+              // values is the key that is the same as how info contains settings key, for direct settings saving
+              this.emit(TouchPortalClientEvent.Settings, message.values);
+              break;
+            case TouchPortalIncomingEventType.ListChanged:
+              this.emit(TouchPortalClientEvent.ListChange, message);
+              break;
+            case TouchPortalIncomingEventType.ExecuteAction:
+              this.emit(TouchPortalClientEvent.Action, message, null);
+              break;
+            case TouchPortalIncomingEventType.Broadcast:
+              this.emit(TouchPortalClientEvent.Broadcast, message);
+              break;
+            case TouchPortalIncomingEventType.ConnectorShortIdInfo:
+              this.emit(TouchPortalClientEvent.ConnectorShortIdNotification, message);
+              break;
+            case TouchPortalIncomingEventType.ConnectorChange:
+              this.emit(TouchPortalClientEvent.ConnectorChange, message);
+              break;
+            case TouchPortalIncomingEventType.ActionHoldInfo_Up:
+              this.emit(TouchPortalClientEvent.Action, message, false);
+              break;
+            case TouchPortalIncomingEventType.ActionHoldInfo_Down:
+              this.emit(TouchPortalClientEvent.Action, message, true);
+              break;
+            default:
+              this.emit(TouchPortalClientEvent.Message, message);
+          }
         } catch (ex) {
           this.log(LoggingLevel.ERROR, 'JSON exception while parsing line:', line, '\n', ex);
-          continue;
-        }
-
-        // Handle internal TP Messages here, else pass to user code
-        switch (message.type) {
-          case TouchPortalIncomingEventType.ClosePluginCall:
-            if (message.pluginId === this.pluginId) {
-              this.emit(TouchPortalClientEvent.Close, message);
-              this.disconnect();
-            }
-            break;
-          case TouchPortalIncomingEventType.Info:
-            this.emit(TouchPortalClientEvent.Info, message);
-
-            if (message.settings) {
-              this.emit(TouchPortalClientEvent.Settings, message.settings);
-            }
-
-            break;
-          case TouchPortalIncomingEventType.NotificationAction:
-            this.emit(TouchPortalClientEvent.NotificationClicked, message);
-            break;
-          case TouchPortalIncomingEventType.Settings:
-            // values is the key that is the same as how info contains settings key, for direct settings saving
-            this.emit(TouchPortalClientEvent.Settings, message.values);
-            break;
-          case TouchPortalIncomingEventType.ListChanged:
-            this.emit(TouchPortalClientEvent.ListChange, message);
-            break;
-          case TouchPortalIncomingEventType.ExecuteAction:
-            this.emit(TouchPortalClientEvent.Action, message, null);
-            break;
-          case TouchPortalIncomingEventType.Broadcast:
-            this.emit(TouchPortalClientEvent.Broadcast, message);
-            break;
-          case TouchPortalIncomingEventType.ConnectorShortIdInfo:
-            this.emit(TouchPortalClientEvent.ConnectorShortIdNotification, message);
-            break;
-          case TouchPortalIncomingEventType.ConnectorChange:
-            this.emit(TouchPortalClientEvent.ConnectorChange, message);
-            break;
-          case TouchPortalIncomingEventType.ActionHoldInfo_Up:
-            this.emit(TouchPortalClientEvent.Action, message, false);
-            break;
-          case TouchPortalIncomingEventType.ActionHoldInfo_Down:
-            this.emit(TouchPortalClientEvent.Action, message, true);
-            break;
-          default:
-            this.emit(TouchPortalClientEvent.Message, message);
         }
       }
     });

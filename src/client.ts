@@ -49,7 +49,12 @@ export default class TouchPortalClient extends EventEmitter {
   }
 
   // Plugin Updates
-  async checkForUpdate(githubUser: string, githubRepo: string, includePrerelease: boolean = false): Promise<void> {
+  async checkForUpdate(
+    githubUser: string,
+    githubRepo: string,
+    currentVersion: string,
+    includePrerelease: boolean = false
+  ): Promise<void> {
     const updateUrl = `https://api.github.com/repos/${githubUser}/${githubRepo}/releases`;
 
     try {
@@ -66,8 +71,8 @@ export default class TouchPortalClient extends EventEmitter {
         const releaseVersion = release.tag_name.replace(/^v/, '');
 
         if (includePrerelease || !release.prerelease) {
-          if (compare(releaseVersion, TOUCHPORTAL_NODE_API_VERSION, '>')) {
-            this.emit(TouchPortalClientEvent.Update, TOUCHPORTAL_NODE_API_VERSION, releaseVersion);
+          if (compare(releaseVersion, currentVersion, '>')) {
+            this.emit(TouchPortalClientEvent.Update, currentVersion, releaseVersion);
             return true;
           }
         }

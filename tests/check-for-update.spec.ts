@@ -20,7 +20,7 @@ describe('checkForUpdate', () => {
     const client = new TouchPortalClient(defaultConstructorOptions);
     client.on('Update', listener);
 
-    await client.checkForUpdate('user', 'repo');
+    await client.checkForUpdate('user', 'repo', pluginVersion);
 
     if (shouldEmitUpdate) {
       expect(listener).toHaveBeenCalledWith(pluginVersion, version.tag_name.replace(/^v/, ''));
@@ -44,7 +44,7 @@ describe('checkForUpdate', () => {
       const client = new TouchPortalClient(defaultConstructorOptions);
       client.on('Update', listener);
 
-      await client.checkForUpdate('user', 'repo', true);
+      await client.checkForUpdate('user', 'repo', pluginVersion, true);
 
       if (shouldEmitUpdate) {
         expect(listener).toHaveBeenCalledWith(pluginVersion, version.tag_name.replace(/^v/, ''));
@@ -58,7 +58,7 @@ describe('checkForUpdate', () => {
     vi.mocked(fetch).mockRejectedValueOnce(new Error('Network fail'));
 
     const client = new TouchPortalClient(defaultConstructorOptions);
-    await client.checkForUpdate('user', 'repo');
+    await client.checkForUpdate('user', 'repo', pluginVersion);
 
     expect(logCallback).toHaveBeenCalled();
 
@@ -72,7 +72,7 @@ describe('checkForUpdate', () => {
     vi.mocked(fetch).mockResolvedValueOnce({ ok: false } as Response);
 
     const client = new TouchPortalClient(defaultConstructorOptions);
-    await client.checkForUpdate('user', 'repo');
+    await client.checkForUpdate('user', 'repo', pluginVersion);
 
     expect(logCallback).toHaveBeenCalled();
 

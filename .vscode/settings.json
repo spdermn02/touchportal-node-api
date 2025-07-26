@@ -1,0 +1,16 @@
+{
+  "files.eol": "\n",
+  "[typescript]": {
+    "editor.tabSize": 2,
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "prettier.semi": true,
+  "prettier.singleQuote": true,
+  "prettier.trailingComma": "none",
+  "prettier.bracketSameLine": true,
+  "prettier.htmlWhitespaceSensitivity": "ignore",
+  "prettier.endOfLine": "lf",
+  "prettier.printWidth": 120,
+  "typescript.preferences.quoteStyle": "single",
+  "vitest.shellType": "terminal"
+}

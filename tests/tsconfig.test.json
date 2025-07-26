@@ -1,0 +1,10 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "types": ["vitest"],
+    "module": "ESNext",
+    "target": "ESNext",
+    "noEmit": true
+  },
+  "include": ["**/*.ts", "../vitest.config.mts"]
+}

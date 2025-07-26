@@ -1,5 +1,6 @@
 import EventEmitter from 'events';
 import net from 'net';
+import https from 'https';
 import { compare } from 'compare-versions';
 import {
   LoggingLevel,
@@ -49,40 +50,61 @@ export default class TouchPortalClient extends EventEmitter {
   }
 
   // Plugin Updates
-  async checkForUpdate(
+  checkForUpdate(
     githubUser: string,
     githubRepo: string,
     currentVersion: string,
     includePrerelease: boolean = false
-  ): Promise<void> {
+  ): void {
     const updateUrl = `https://api.github.com/repos/${githubUser}/${githubRepo}/releases`;
 
-    try {
-      const response = await fetch(updateUrl, {
-        headers: { 'User-Agent': this.pluginId }
-      });
+    https
+      .get(updateUrl, { headers: { 'User-Agent': this.pluginId } }, (res) => {
+        const { statusCode } = res;
 
-      if (!response.ok) {
-        throw new Error(`${this.pluginId}: Request failed with status ${response.status}`);
-      }
-
-      const releases = (await response.json()) as { tag_name: string; prerelease: boolean }[];
-      releases.some((release: { tag_name: string; prerelease: boolean }) => {
-        const releaseVersion = release.tag_name.replace(/^v/, '');
-
-        if (includePrerelease || !release.prerelease) {
-          if (compare(releaseVersion, currentVersion, '>')) {
-            this.emit(TouchPortalClientEvent.Update, currentVersion, releaseVersion);
-            return true;
-          }
+        if (statusCode !== 200) {
+          this.log(LoggingLevel.ERROR, `${this.pluginId}: Request failed with status ${statusCode}`);
+          res.resume();
+          return;
         }
 
-        return false;
+        res.setEncoding('utf8');
+        let updateData = '';
+
+        res.on('data', (chunk: string) => {
+          updateData += chunk;
+        });
+
+        res.on('end', () => {
+          try {
+            const releases = JSON.parse(updateData) as { tag_name: string; prerelease: boolean }[];
+            releases.some((release: { tag_name: string; prerelease: boolean }) => {
+              const releaseVersion = release.tag_name.replace(/^v/, '');
+
+              if (includePrerelease || !release.prerelease) {
+                if (compare(releaseVersion, currentVersion, '>')) {
+                  this.emit(TouchPortalClientEvent.Update, currentVersion, releaseVersion);
+                  return true;
+                }
+              }
+
+              return false;
+            });
+          } catch (e) {
+            const err = e instanceof Error ? e : new Error(String(e));
+            this.log(LoggingLevel.ERROR, `${this.pluginId}: Failed to parse update response: ${err.message}`);
+          }
+        });
+
+        res.on('error', (ex: unknown) => {
+          const err = ex instanceof Error ? ex : new Error(String(ex));
+          this.log(LoggingLevel.ERROR, `checkForUpdate: Response error: ${err.message}`);
+        });
+      })
+      .on('error', (ex: unknown) => {
+        const err = ex instanceof Error ? ex : new Error(String(ex));
+        this.log(LoggingLevel.ERROR, `checkForUpdate: Request error: ${err.message}`);
       });
-    } catch (ex: unknown) {
-      const err = ex instanceof Error ? ex : new Error(String(ex));
-      this.log(LoggingLevel.ERROR, `checkForUpdate: Check for update failed: ${err.message}`);
-    }
   }
 
   // Connection

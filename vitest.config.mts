@@ -7,7 +7,7 @@ export default defineConfig({
     globals: true,
     watch: false,
     environment: 'node',
-    setupFiles: ['./tests/vitest.setup.ts']
+    setupFiles: []
   },
   plugins: []
 });

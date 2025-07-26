@@ -1,6 +1,8 @@
 import { describe, expect, Mock, test, vi } from 'vitest';
+import { mockResponse, mockResponseError, mockRequestError } from './mocks/mock-https';
 import { TouchPortalClientOptions } from '../src/types';
 import TouchPortalClient from '../src/client';
+import { nextTick } from './utilities/next-tick';
 
 describe('checkForUpdate', () => {
   const pluginVersion = '1.0.0';
@@ -14,13 +16,14 @@ describe('checkForUpdate', () => {
     { version: { tag_name: 'v1.0.0', prerelease: false }, shouldEmitUpdate: false },
     { version: { tag_name: 'v0.1.0', prerelease: false }, shouldEmitUpdate: false }
   ])('should emit a "Update" event if a newer stable version is found', async ({ version, shouldEmitUpdate }) => {
-    vi.mocked(fetch).mockResolvedValueOnce({ ok: true, json: async () => [version] } as Response);
+    mockResponse(JSON.stringify([version]), 200);
 
     const listener = vi.fn();
     const client = new TouchPortalClient(defaultConstructorOptions);
     client.on('Update', listener);
+    client.checkForUpdate('user', 'repo', pluginVersion);
 
-    await client.checkForUpdate('user', 'repo', pluginVersion);
+    await nextTick();
 
     if (shouldEmitUpdate) {
       expect(listener).toHaveBeenCalledWith(pluginVersion, version.tag_name.replace(/^v/, ''));
@@ -38,13 +41,14 @@ describe('checkForUpdate', () => {
   ])(
     'should emit a "Update" event if a newer stable or prerelease version is found',
     async ({ version, shouldEmitUpdate }) => {
-      vi.mocked(fetch).mockResolvedValueOnce({ ok: true, json: async () => [version] } as Response);
+      mockResponse(JSON.stringify([version]), 200);
 
       const listener = vi.fn();
       const client = new TouchPortalClient(defaultConstructorOptions);
       client.on('Update', listener);
+      client.checkForUpdate('user', 'repo', pluginVersion, true);
 
-      await client.checkForUpdate('user', 'repo', pluginVersion, true);
+      await nextTick();
 
       if (shouldEmitUpdate) {
         expect(listener).toHaveBeenCalledWith(pluginVersion, version.tag_name.replace(/^v/, ''));
@@ -54,11 +58,29 @@ describe('checkForUpdate', () => {
     }
   );
 
-  test('should log if fetch errors', async () => {
-    vi.mocked(fetch).mockRejectedValueOnce(new Error('Network fail'));
+  test('should log if get request errors', async () => {
+    mockRequestError(new Error('Network fail'));
 
     const client = new TouchPortalClient(defaultConstructorOptions);
-    await client.checkForUpdate('user', 'repo', pluginVersion);
+    client.checkForUpdate('user', 'repo', pluginVersion);
+
+    await nextTick();
+
+    expect(logCallback).toHaveBeenCalled();
+
+    const [level, ...args] = logCallback.mock.calls[0];
+
+    expect(typeof level).toBe('string');
+    expect(args.length).toBeGreaterThan(0);
+  });
+
+  test('should log if get response errors', async () => {
+    mockResponseError(new Error('Response error'));
+
+    const client = new TouchPortalClient(defaultConstructorOptions);
+    client.checkForUpdate('user', 'repo', pluginVersion);
+
+    await nextTick();
 
     expect(logCallback).toHaveBeenCalled();
 
@@ -69,10 +91,12 @@ describe('checkForUpdate', () => {
   });
 
   test('should log if response is not ok', async () => {
-    vi.mocked(fetch).mockResolvedValueOnce({ ok: false } as Response);
+    mockResponse('', 404);
 
     const client = new TouchPortalClient(defaultConstructorOptions);
-    await client.checkForUpdate('user', 'repo', pluginVersion);
+    client.checkForUpdate('user', 'repo', pluginVersion);
+
+    await nextTick();
 
     expect(logCallback).toHaveBeenCalled();
 
